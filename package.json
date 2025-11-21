@@ -1,0 +1,26 @@
+{
+  "name": "social-media-app",
+  "version": "1.0.0",
+  "description": "A production-grade social media application",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "lint:all": "cd backend && npm run lint && cd ../frontend && npm run lint",
+    "format:all": "cd backend && npm run format && cd ../frontend && npm run format"
+  },
+  "keywords": [
+    "social-media",
+    "react",
+    "express",
+    "typescript",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "ISC"
+}
