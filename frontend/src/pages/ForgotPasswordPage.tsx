@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useThemeStore } from '../stores/themeStore';
 import ForgotPasswordForm from '../components/auth/ForgotPasswordForm';
 import { Toaster } from 'react-hot-toast';

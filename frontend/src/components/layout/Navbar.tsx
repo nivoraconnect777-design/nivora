@@ -1,10 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
 import toast from 'react-hot-toast';
-import { useState } from 'react';
 
 export default function Navbar() {
   const location = useLocation();

@@ -16,7 +16,6 @@ export default function AppLayout() {
     }
   }, [isDark]);
 
-  const location = useLocation();
   const { isAuthenticated } = useAuthStore();
 
   return (

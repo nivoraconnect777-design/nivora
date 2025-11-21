@@ -7,26 +7,15 @@ import {
   MessageCircle,
   Bell,
   User,
-  Sun,
-  Moon,
-  LogOut,
   Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
-import toast from 'react-hot-toast';
 
 export default function Sidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuthStore();
-  const { isDark, toggleTheme } = useThemeStore();
-
-  const handleLogout = () => {
-    logout();
-    toast.success('Logged out successfully');
-    navigate('/login');
-  };
+  const { isAuthenticated } = useAuthStore();
+  const { isDark } = useThemeStore();
 
   const isActive = (path: string) => location.pathname === path;
 

@@ -26,7 +26,6 @@ export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { setAuth } = useAuthStore();
   const { isDark } = useThemeStore();
 
   const {
