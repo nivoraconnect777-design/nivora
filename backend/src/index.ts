@@ -14,6 +14,7 @@ import userRoutes from './routes/userRoutes';
 import mediaRoutes from './routes/mediaRoutes';
 import followRoutes from './routes/followRoutes';
 import searchRoutes from './routes/searchRoutes';
+import postRoutes from './routes/postRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -76,6 +77,9 @@ app.use('/api/users', followRoutes);
 // Search routes
 app.use('/api/search', searchRoutes);
 
+// Post routes
+app.use('/api/posts', postRoutes);
+
 // Test routes (REMOVE IN PRODUCTION)
 if (process.env.NODE_ENV === 'development') {
   app.use('/api/test', testRoutes);
@@ -93,7 +97,7 @@ app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-  
+
   // Test database connection
   try {
     await prisma.$connect();
