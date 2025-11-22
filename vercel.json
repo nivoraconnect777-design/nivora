@@ -5,7 +5,8 @@
       "src": "api/index.ts",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["backend/**"]
+        "includeFiles": ["backend/**"],
+        "excludeFiles": ["backend/node_modules/**", "backend/dist/**"]
       }
     },
     {
@@ -31,5 +32,6 @@
       "memory": 1024,
       "maxDuration": 10
     }
-  }
+  },
+  "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]; then exit 1; fi"
 }
