@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AppLayout from './components/layout/AppLayout';
+import LandingPage from './pages/LandingPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -55,6 +56,9 @@ function App() {
         />
         <Router>
           <Routes>
+            {/* Public landing page */}
+            <Route path="/" element={<LandingPage />} />
+
             {/* Auth routes (no layout) */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -66,7 +70,7 @@ function App() {
 
             {/* App routes (with layout) */}
             <Route element={<AppLayout />}>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/home" element={<HomePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/explore" element={<PlaceholderPage title="Explore" />} />
               <Route path="/reels" element={<PlaceholderPage title="Reels" />} />

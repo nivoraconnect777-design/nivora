@@ -47,10 +47,10 @@ export default function Sidebar() {
       {/* Navigation Links */}
       <nav className="flex-1 px-3 space-y-1">
         <SidebarLink
-          to="/"
+          to="/home"
           icon={Home}
           label="Home"
-          active={isActive('/')}
+          active={isActive('/home')}
           isDark={isDark}
         />
         <SidebarLink
