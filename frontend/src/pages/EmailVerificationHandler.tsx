@@ -40,9 +40,9 @@ export default function EmailVerificationHandler() {
       try {
         const response = await api.get(`/api/auth/verify-email?token=${token}`);
         
-        // Auto-login the user with the returned tokens
-        const { user, token: accessToken } = response.data;
-        setAuth(user, accessToken);
+        // Auto-login the user (tokens are in httpOnly cookies)
+        const { user } = response.data;
+        setAuth(user);
         
         setStatus('success');
         setMessage(response.data.message || 'Email verified successfully!');
