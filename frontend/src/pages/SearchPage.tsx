@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Search, Loader2, UserPlus } from 'lucide-react';
 import { useThemeStore } from '../stores/themeStore';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../lib/api';
 import FollowButton from '../components/social/FollowButton';
 
@@ -25,8 +25,20 @@ interface User {
 export default function SearchPage() {
   const { isDark } = useThemeStore();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
+
+  // Update query when URL changes
+  useEffect(() => {
+    const queryFromUrl = searchParams.get('q') || '';
+    if (queryFromUrl !== searchQuery) {
+      setSearchQuery(queryFromUrl);
+      setDebouncedQuery(queryFromUrl);
+    }
+  }, [searchParams]);
 
   // Debounce search query (300ms as per requirements)
   useEffect(() => {
@@ -42,7 +54,7 @@ export default function SearchPage() {
     queryKey: ['searchUsers', debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery.trim()) return { users: [], pagination: null };
-      
+
       const response = await api.get(`/api/search/users?q=${encodeURIComponent(debouncedQuery)}`);
       return response.data.data;
     },
@@ -77,20 +89,18 @@ export default function SearchPage() {
       >
         <div className="relative">
           <Search
-            className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${
-              isDark ? 'text-gray-400' : 'text-gray-500'
-            }`}
+            className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'
+              }`}
           />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for users..."
-            className={`w-full pl-12 pr-4 py-4 rounded-2xl transition-all ${
-              isDark
+            className={`w-full pl-12 pr-4 py-4 rounded-2xl transition-all ${isDark
                 ? 'bg-gray-800 text-white placeholder-gray-400 focus:ring-blue-500'
                 : 'bg-white text-gray-900 placeholder-gray-500 focus:ring-blue-500 shadow-lg'
-            } focus:outline-none focus:ring-2`}
+              } focus:outline-none focus:ring-2`}
             autoFocus
           />
         </div>
@@ -156,9 +166,8 @@ export default function SearchPage() {
 function UserCard({ user, isDark, navigate }: { user: User; isDark: boolean; navigate: any }) {
   return (
     <div
-      className={`p-4 rounded-2xl transition-all cursor-pointer ${
-        isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50 shadow-lg'
-      }`}
+      className={`p-4 rounded-2xl transition-all cursor-pointer ${isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50 shadow-lg'
+        }`}
     >
       <div className="flex items-center gap-4">
         {/* Profile Picture */}
