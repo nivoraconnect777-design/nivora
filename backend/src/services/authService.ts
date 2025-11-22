@@ -25,11 +25,11 @@ interface GoogleUserData {
 
 class AuthService {
   private generateToken(userId: string, expiresIn: string): string {
-    return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn });
+    return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn });
   }
 
   private generateRefreshToken(userId: string): string {
-    return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET!, {
+    return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET as string, {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     });
   }
