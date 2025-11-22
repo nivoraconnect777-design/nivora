@@ -60,25 +60,6 @@ function App() {
             <Route path="/" element={<LandingPage />} />
 
             {/* Auth routes (no layout) */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/verify-email-pending" element={<VerifyEmailPage />} />
-            <Route path="/verify-email" element={<EmailVerificationHandler />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
-
-            {/* App routes (with layout) */}
-            <Route element={<AppLayout />}>
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/explore" element={<PlaceholderPage title="Explore" />} />
-              <Route path="/reels" element={<PlaceholderPage title="Reels" />} />
-              <Route path="/messages" element={<PlaceholderPage title="Messages" />} />
-              <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/profile/:username" element={<ProfilePage />} />
-            </Route>
           </Routes>
         </Router>
       </QueryClientProvider>
