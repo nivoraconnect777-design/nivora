@@ -60,6 +60,27 @@ function App() {
             {/* Public landing page */}
             <Route path="/" element={<LandingPage />} />
 
+            {/* Auth routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/verify-email-handler" element={<EmailVerificationHandler />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+            {/* Protected routes wrapped in AppLayout */}
+            <Route element={<AppLayout />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
+              <Route path="/messages" element={<PlaceholderPage title="Messages" />} />
+              <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
+              <Route path="/profile/:username" element={<ProfilePage />} />
+              <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+            </Route>
+          </Routes>
         </Router>
       </QueryClientProvider>
     </ErrorBoundary>
