@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useThemeStore } from '../stores/themeStore';
 import { useAuthStore } from '../stores/authStore';
+import { useUIStore } from '../stores/uiStore';
 import { Users, Loader2 } from 'lucide-react';
-import CreatePost from '../components/common/CreatePost';
 import PostCard from '../components/common/PostCard';
 import { Post } from '../types/post';
 import api from '../lib/api';
@@ -12,6 +12,7 @@ import api from '../lib/api';
 export default function HomePage() {
   const { isDark } = useThemeStore();
   const { isAuthenticated } = useAuthStore();
+  const { feedRefreshTrigger } = useUIStore();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +25,8 @@ export default function HomePage() {
 
   const fetchPosts = async () => {
     try {
-      setIsLoading(true);
+      // Only set loading on initial fetch, not on refresh
+      if (posts.length === 0) setIsLoading(true);
       const response = await api.get('/api/posts');
       if (response.data.success) {
         setPosts(response.data.posts);
@@ -38,11 +40,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
-
-  const handlePostCreated = () => {
-    fetchPosts();
-  };
+  }, [feedRefreshTrigger]); // Refetch when trigger changes
 
   const handleLike = async (postId: string) => {
     // TODO: Implement like functionality
@@ -65,9 +63,6 @@ export default function HomePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      {/* Create Post Section */}
-      <CreatePost onPostCreated={handlePostCreated} />
-
       {/* Posts Feed */}
       {isLoading ? (
         <div className="flex justify-center items-center py-16">

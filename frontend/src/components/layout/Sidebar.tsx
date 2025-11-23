@@ -8,14 +8,17 @@ import {
   Bell,
   User,
   Sparkles,
+  PlusSquare,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
+import { useUIStore } from '../../stores/uiStore';
 
 export default function Sidebar() {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
   const { isDark } = useThemeStore();
+  const { openCreatePostModal } = useUIStore();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -24,9 +27,8 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`hidden md:flex fixed left-0 top-0 h-screen w-64 flex-col border-r z-40 ${
-        isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
-      }`}
+      className={`hidden md:flex fixed left-0 top-0 h-screen w-64 flex-col border-r z-40 ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+        }`}
     >
       {/* Logo */}
       <div className="p-6">
@@ -35,9 +37,8 @@ export default function Sidebar() {
             <Sparkles className={`w-7 h-7 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
           </motion.div>
           <span
-            className={`text-2xl font-bold bg-gradient-to-r ${
-              isDark ? 'from-blue-400 to-purple-400' : 'from-blue-600 to-purple-600'
-            } bg-clip-text text-transparent`}
+            className={`text-2xl font-bold bg-gradient-to-r ${isDark ? 'from-blue-400 to-purple-400' : 'from-blue-600 to-purple-600'
+              } bg-clip-text text-transparent`}
           >
             Nivora
           </span>
@@ -88,6 +89,19 @@ export default function Sidebar() {
           active={isActive('/profile')}
           isDark={isDark}
         />
+
+        <button
+          onClick={openCreatePostModal}
+          className={`w-full mt-4 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isDark
+            ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+        >
+          <div className="p-1 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all">
+            <PlusSquare className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-medium">Create</span>
+        </button>
       </nav>
 
 
@@ -109,15 +123,14 @@ function SidebarLink({ to, icon: Icon, label, active, isDark }: SidebarLinkProps
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-          active
-            ? isDark
-              ? 'bg-blue-500/20 text-blue-400'
-              : 'bg-blue-50 text-blue-600'
-            : isDark
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${active
+          ? isDark
+            ? 'bg-blue-500/20 text-blue-400'
+            : 'bg-blue-50 text-blue-600'
+          : isDark
             ? 'text-gray-400 hover:text-white hover:bg-gray-800'
             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-        }`}
+          }`}
       >
         <Icon className="w-5 h-5" />
         <span className="font-medium">{label}</span>

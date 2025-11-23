@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import CreatePostModal from '../common/CreatePostModal';
 import { useThemeStore } from '../../stores/themeStore';
 import { useAuthStore } from '../../stores/authStore';
 import api from '../../lib/api';
@@ -35,6 +36,7 @@ export default function AppLayout() {
       <main className={`pb-16 md:pb-0 ${isAuthenticated ? 'md:ml-64' : ''}`}>
         <Outlet />
       </main>
+      <CreatePostModal />
     </div>
   );
 }

@@ -12,6 +12,8 @@ interface UIState {
   closeCreateReelModal: () => void;
   openCreateStoryModal: () => void;
   closeCreateStoryModal: () => void;
+  feedRefreshTrigger: number;
+  triggerFeedRefresh: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -31,4 +33,7 @@ export const useUIStore = create<UIState>((set) => ({
 
   openCreateStoryModal: () => set({ isCreateStoryModalOpen: true }),
   closeCreateStoryModal: () => set({ isCreateStoryModalOpen: false }),
+
+  feedRefreshTrigger: 0,
+  triggerFeedRefresh: () => set((state) => ({ feedRefreshTrigger: state.feedRefreshTrigger + 1 })),
 }));

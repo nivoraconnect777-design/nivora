@@ -10,6 +10,7 @@ import followRoutes from '../backend/src/routes/followRoutes';
 import searchRoutes from '../backend/src/routes/searchRoutes';
 import mediaRoutes from '../backend/src/routes/mediaRoutes';
 import exploreRoutes from '../backend/src/routes/exploreRoutes';
+import reelsRoutes from '../backend/src/routes/reelsRoutes';
 
 // Import middleware
 import { errorHandler } from '../backend/src/middleware/errorHandler';
@@ -41,6 +42,7 @@ app.use('/api/follow', followRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/explore', exploreRoutes);
+app.use('/api/reels', reelsRoutes);
 
 // Error handling
 app.use(notFoundHandler);
