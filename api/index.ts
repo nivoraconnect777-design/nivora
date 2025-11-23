@@ -11,6 +11,7 @@ import searchRoutes from '../backend/src/routes/searchRoutes';
 import mediaRoutes from '../backend/src/routes/mediaRoutes';
 import exploreRoutes from '../backend/src/routes/exploreRoutes';
 import reelsRoutes from '../backend/src/routes/reelsRoutes';
+import postRoutes from '../backend/src/routes/postRoutes';
 
 // Import middleware
 import { errorHandler } from '../backend/src/middleware/errorHandler';
@@ -43,6 +44,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/explore', exploreRoutes);
 app.use('/api/reels', reelsRoutes);
+app.use('/api/posts', postRoutes);
 
 // Error handling
 app.use(notFoundHandler);
