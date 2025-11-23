@@ -16,7 +16,7 @@ import { useUIStore } from '../../stores/uiStore';
 
 export default function Sidebar() {
   const location = useLocation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { isDark } = useThemeStore();
   const { openCreatePostModal } = useUIStore();
 
@@ -83,10 +83,10 @@ export default function Sidebar() {
           isDark={isDark}
         />
         <SidebarLink
-          to="/profile"
+          to={`/profile/${user?.username || ''}`}
           icon={User}
           label="Profile"
-          active={isActive('/profile')}
+          active={location.pathname.startsWith('/profile')}
           isDark={isDark}
         />
 
