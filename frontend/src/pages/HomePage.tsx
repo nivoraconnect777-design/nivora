@@ -46,22 +46,36 @@ export default function HomePage() {
   }, [feedRefreshTrigger]); // Refetch when trigger changes
 
   const handleLike = async (postId: string) => {
+    // Optimistic update
+    const previousPosts = [...posts];
+    const postIndex = posts.findIndex(p => p.id === postId);
+    if (postIndex === -1) return;
+
+    const currentPost = posts[postIndex];
+    const newIsLiked = !currentPost.isLiked;
+
+    // Update UI immediately
+    setPosts(posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          isLiked: newIsLiked,
+          likesCount: newIsLiked ? post.likesCount + 1 : post.likesCount - 1
+        };
+      }
+      return post;
+    }));
+
     try {
       const response = await api.post(`/api/posts/${postId}/like`);
-      if (response.data.success) {
-        setPosts(posts.map(post => {
-          if (post.id === postId) {
-            return {
-              ...post,
-              isLiked: response.data.isLiked,
-              likesCount: response.data.isLiked ? post.likesCount + 1 : post.likesCount - 1
-            };
-          }
-          return post;
-        }));
+      if (!response.data.success) {
+        // Rollback on failure
+        setPosts(previousPosts);
       }
     } catch (error) {
       console.error('Failed to like post:', error);
+      // Rollback on error
+      setPosts(previousPosts);
     }
   };
 
