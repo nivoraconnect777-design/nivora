@@ -188,19 +188,19 @@ export default function CreatePostModal() {
                                                 initial={{ opacity: 0, scale: 0.95 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 exit={{ opacity: 0, scale: 0.95 }}
-                                                className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 aspect-square group"
+                                                className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 max-h-[400px] group"
                                             >
                                                 {mediaType === 'video' ? (
                                                     <video
                                                         src={mediaPreview}
                                                         controls
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-auto object-contain"
                                                     />
                                                 ) : (
                                                     <img
                                                         src={mediaPreview}
                                                         alt="Preview"
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-auto object-contain"
                                                     />
                                                 )}
                                                 <button
