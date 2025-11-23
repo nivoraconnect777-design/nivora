@@ -92,8 +92,73 @@ app.use(notFoundHandler);
 // Error handler (must be last)
 app.use(errorHandler);
 
+// Create HTTP server
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import { initializeSocket } from './socket/socketHandler';
+import messageRoutes from './routes/messageRoutes';
+
+const httpServer = createServer(app);
+
+// Initialize Socket.io
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST']
+  }
+});
+
+// Make io accessible in routes
+app.set('io', io);
+
+// Initialize socket handler
+initializeSocket(io);
+
+// API routes
+app.get('/api', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Social Media API',
+    version: '1.0.0',
+  });
+});
+
+// Authentication routes
+app.use('/api/auth', authRoutes);
+
+// User routes
+app.use('/api/users', userRoutes);
+
+// Media routes
+app.use('/api/media', mediaRoutes);
+
+// Follow routes
+app.use('/api/users', followRoutes);
+
+// Search routes
+app.use('/api/search', searchRoutes);
+
+// Post routes
+app.use('/api/posts', postRoutes);
+
+// Message routes
+app.use('/api/messages', messageRoutes);
+
+// Test routes (REMOVE IN PRODUCTION)
+if (process.env.NODE_ENV === 'development') {
+  app.use('/api/test', testRoutes);
+  console.log('🧪 Test routes enabled at /api/test');
+}
+
+// 404 handler
+app.use(notFoundHandler);
+
+// Error handler (must be last)
+app.use(errorHandler);
+
 // Start server
-app.listen(PORT, async () => {
+httpServer.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);

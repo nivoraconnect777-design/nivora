@@ -1,23 +1,42 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../stores/themeStore';
 import { useAuthStore } from '../stores/authStore';
-import { Settings, Grid, Film, Bookmark, Camera, Loader2 } from 'lucide-react';
+import { Settings, Grid, Film, Bookmark, Camera, Loader2, MessageCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import EditProfileModal from '../components/profile/EditProfileModal';
 import FollowButton from '../components/social/FollowButton';
+import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const { isDark } = useThemeStore();
   const { user: currentUser } = useAuthStore();
   const { username } = useParams<{ username: string }>();
+  const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // If no username in URL, show current user's profile
   const profileUsername = username || currentUser?.username;
   const isOwnProfile = !username || username === currentUser?.username;
+
+  // Handle message button click
+  const handleMessage = async () => {
+    try {
+      // Create or get conversation with this user
+      const response = await api.post('/api/messages', {
+        receiverId: profileUser.id,
+        text: '', // Empty initial message just to create conversation
+      });
+
+      // Navigate to messages page
+      navigate('/messages');
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      toast.error('Failed to start conversation');
+    }
+  };
 
   // Fetch profile data
   const { data, isLoading, error } = useQuery({
@@ -72,9 +91,8 @@ export default function ProfilePage() {
             whileHover={{ scale: 1.05 }}
             className="relative group cursor-pointer"
           >
-            <div className={`w-32 h-32 rounded-full overflow-hidden border-4 ${
-              isDark ? 'border-gray-700' : 'border-gray-200'
-            }`}>
+            <div className={`w-32 h-32 rounded-full overflow-hidden border-4 ${isDark ? 'border-gray-700' : 'border-gray-200'
+              }`}>
               {profileUser?.profilePicUrl ? (
                 <img
                   src={profileUser.profilePicUrl}
@@ -105,35 +123,47 @@ export default function ProfilePage() {
               <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {profileUser?.username}
               </h1>
-              
+
               {isOwnProfile ? (
                 <>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsEditModalOpen(true)}
-                    className={`px-6 py-2 rounded-xl font-semibold transition-colors ${
-                      isDark
-                        ? 'bg-gray-700 text-white hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
+                    className={`px-6 py-2 rounded-xl font-semibold transition-colors ${isDark
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      }`}
                   >
                     Edit Profile
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`p-2 rounded-xl transition-colors ${
-                      isDark
-                        ? 'bg-gray-700 text-white hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
+                    className={`p-2 rounded-xl transition-colors ${isDark
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      }`}
                   >
                     <Settings className="w-5 h-5" />
                   </motion.button>
                 </>
               ) : (
-                <FollowButton userId={profileUser.id} size="md" />
+                <div className="flex gap-2">
+                  <FollowButton userId={profileUser.id} size="md" />
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleMessage}
+                    className={`px-6 py-2 rounded-xl font-semibold transition-colors flex items-center gap-2 ${isDark
+                        ? 'bg-gray-700 text-white hover:bg-gray-600'
+                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      }`}
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Message
+                  </motion.button>
+                </div>
               )}
             </div>
 
@@ -186,15 +216,14 @@ export default function ProfilePage() {
               key={tab.id}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`flex items-center gap-2 font-semibold transition-colors ${
-                tab.id === 'posts'
-                  ? isDark
-                    ? 'text-white border-t-2 border-white -mt-[1px]'
-                    : 'text-gray-900 border-t-2 border-gray-900 -mt-[1px]'
-                  : isDark
+              className={`flex items-center gap-2 font-semibold transition-colors ${tab.id === 'posts'
+                ? isDark
+                  ? 'text-white border-t-2 border-white -mt-[1px]'
+                  : 'text-gray-900 border-t-2 border-gray-900 -mt-[1px]'
+                : isDark
                   ? 'text-gray-500 hover:text-gray-300'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               <tab.icon className="w-5 h-5" />
               <span className="hidden md:inline">{tab.label}</span>

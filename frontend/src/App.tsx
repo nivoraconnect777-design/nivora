@@ -15,6 +15,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import SearchPage from './pages/SearchPage';
 import ExplorePage from './pages/ExplorePage';
+import MessagesPage from './pages/MessagesPage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -75,7 +76,7 @@ function App() {
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
-              <Route path="/messages" element={<PlaceholderPage title="Messages" />} />
+              <Route path="/messages" element={<MessagesPage />} />
               <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
               <Route path="/profile/:username" element={<ProfilePage />} />
               <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
