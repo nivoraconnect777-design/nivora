@@ -5,6 +5,9 @@ import {
     getPosts,
     getPostById,
     deletePost,
+    toggleLike,
+    addComment,
+    getComments,
 } from '../controllers/postController';
 
 const router = express.Router();
@@ -16,5 +19,8 @@ router.post('/', createPost as RequestHandler);
 router.get('/', getPosts as RequestHandler);
 router.get('/:id', getPostById as RequestHandler);
 router.delete('/:id', deletePost as RequestHandler);
+router.post('/:id/like', toggleLike as RequestHandler);
+router.post('/:id/comments', addComment as RequestHandler);
+router.get('/:id/comments', getComments as RequestHandler);
 
 export default router;

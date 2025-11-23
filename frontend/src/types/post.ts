@@ -16,3 +16,16 @@ export interface Post {
     likesCount: number;
     commentsCount: number;
 }
+
+export interface Comment {
+    id: string;
+    userId: string;
+    user: {
+        id: string;
+        username: string;
+        profilePicUrl: string | null;
+    };
+    postId: string;
+    text: string;
+    createdAt: string;
+}

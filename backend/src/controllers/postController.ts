@@ -172,3 +172,110 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ success: false, message: 'Error deleting post' });
     }
 };
+
+export const toggleLike = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const existingLike = await prisma.like.findUnique({
+            where: {
+                userId_postId: {
+                    userId,
+                    postId: id,
+                },
+            },
+        });
+
+        if (existingLike) {
+            await prisma.like.delete({
+                where: {
+                    id: existingLike.id,
+                },
+            });
+            res.status(200).json({ success: true, isLiked: false });
+        } else {
+            await prisma.like.create({
+                data: {
+                    userId,
+                    postId: id,
+                },
+            });
+            res.status(200).json({ success: true, isLiked: true });
+        }
+    } catch (error) {
+        console.error('Toggle like error:', error);
+        res.status(500).json({ success: false, message: 'Error toggling like' });
+    }
+};
+
+export const addComment = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { text } = req.body;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        if (!text || text.trim().length === 0) {
+            return res.status(400).json({ success: false, message: 'Comment text is required' });
+        }
+
+        const comment = await prisma.comment.create({
+            data: {
+                userId,
+                postId: id,
+                text,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        profilePicUrl: true,
+                    },
+                },
+            },
+        });
+
+        res.status(201).json({ success: true, comment });
+    } catch (error) {
+        console.error('Add comment error:', error);
+        res.status(500).json({ success: false, message: 'Error adding comment' });
+    }
+};
+
+export const getComments = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const comments = await prisma.comment.findMany({
+            where: {
+                postId: id,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        profilePicUrl: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+
+        res.status(200).json({ success: true, comments });
+    } catch (error) {
+        console.error('Get comments error:', error);
+        res.status(500).json({ success: false, message: 'Error fetching comments' });
+    }
+};

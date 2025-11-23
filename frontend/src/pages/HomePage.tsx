@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/authStore';
 import { useUIStore } from '../stores/uiStore';
 import { Users, Loader2 } from 'lucide-react';
 import PostCard from '../components/common/PostCard';
+import CommentsModal from '../components/common/CommentsModal';
 import { Post } from '../types/post';
 import api from '../lib/api';
 
@@ -16,6 +17,8 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -43,13 +46,28 @@ export default function HomePage() {
   }, [feedRefreshTrigger]); // Refetch when trigger changes
 
   const handleLike = async (postId: string) => {
-    // TODO: Implement like functionality
-    console.log('Like post:', postId);
+    try {
+      const response = await api.post(`/api/posts/${postId}/like`);
+      if (response.data.success) {
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isLiked: response.data.isLiked,
+              likesCount: response.data.isLiked ? post.likesCount + 1 : post.likesCount - 1
+            };
+          }
+          return post;
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to like post:', error);
+    }
   };
 
   const handleComment = (postId: string) => {
-    // TODO: Implement comment functionality
-    console.log('Comment on post:', postId);
+    setSelectedPostId(postId);
+    setIsCommentsModalOpen(true);
   };
 
   const handleDelete = async (postId: string) => {
@@ -109,6 +127,25 @@ export default function HomePage() {
             Explore Users
           </motion.button>
         </motion.div>
+      )}
+
+      {selectedPostId && (
+        <CommentsModal
+          isOpen={isCommentsModalOpen}
+          onClose={() => setIsCommentsModalOpen(false)}
+          postId={selectedPostId}
+          onCommentAdded={() => {
+            setPosts(posts.map(post => {
+              if (post.id === selectedPostId) {
+                return {
+                  ...post,
+                  commentsCount: post.commentsCount + 1
+                };
+              }
+              return post;
+            }));
+          }}
+        />
       )}
     </div>
   );
