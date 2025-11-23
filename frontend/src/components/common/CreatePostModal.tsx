@@ -15,16 +15,67 @@ export default function CreatePostModal() {
     const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const compressImage = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = document.createElement('img');
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1080; // Reasonable max width for posts
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG with 0.8 quality
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    resolve(dataUrl);
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setMediaFile(file);
-            setMediaType(file.type.startsWith('video') ? 'video' : 'image');
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setMediaPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            if (file.type.startsWith('video')) {
+                // Check video size (limit to 4MB for Vercel serverless)
+                if (file.size > 4 * 1024 * 1024) {
+                    alert('Video file is too large. Please upload a video smaller than 4MB.');
+                    return;
+                }
+                setMediaFile(file);
+                setMediaType('video');
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setMediaPreview(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                try {
+                    const compressedDataUrl = await compressImage(file);
+                    setMediaFile(file);
+                    setMediaType('image');
+                    setMediaPreview(compressedDataUrl);
+                } catch (error) {
+                    console.error('Error compressing image:', error);
+                    alert('Failed to process image.');
+                }
+            }
         }
     };
 
@@ -77,7 +128,7 @@ export default function CreatePostModal() {
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-gray-800"
+                            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-gray-800 flex flex-col max-h-[90vh]"
                         >
                             {/* Header */}
                             <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
@@ -93,7 +144,7 @@ export default function CreatePostModal() {
                             </div>
 
                             {/* Content */}
-                            <div className="p-6">
+                            <div className="p-6 overflow-y-auto">
                                 {/* User Info */}
                                 <div className="flex items-center space-x-3 mb-6">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px]">
