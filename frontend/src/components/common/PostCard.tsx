@@ -54,7 +54,7 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
             </div>
 
             {/* Media */}
-            <div className="relative aspect-square bg-gray-100 dark:bg-gray-900">
+            <div className="relative bg-gray-100 dark:bg-gray-900 max-h-[600px] overflow-hidden">
                 {post.mediaType === 'video' ? (
                     <video
                         src={post.mediaUrl}
@@ -66,7 +66,7 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
                     <img
                         src={post.mediaUrl}
                         alt={post.caption || 'Post content'}
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto object-contain"
                     />
                 )}
             </div>
