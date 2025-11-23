@@ -1,32 +1,53 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import prisma from '../config/database';
 import { createError } from './errorHandler';
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+  };
+}
+
+export const authenticate = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    // Try to get token from httpOnly cookie first (PRODUCTION STANDARD)
-    let token = req.cookies?.accessToken;
-
-    // Fallback to Authorization header for backward compatibility
-    if (!token) {
-      const authHeader = req.headers.authorization;
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-      }
-    }
+    // Try to get token from cookie first (production), then from Authorization header (fallback)
+    const token = req.cookies?.accessToken || req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      throw createError('No token provided', 401, 'UNAUTHORIZED');
+      throw createError('No token provided', 401, 'AUTH_TOKEN_MISSING');
     }
 
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-      (req as any).user = decoded;
-      next();
-    } catch (error) {
-      throw createError('Invalid or expired token', 401, 'UNAUTHORIZED');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+      },
+    });
+
+    if (!user) {
+      throw createError('User not found', 401, 'AUTH_USER_NOT_FOUND');
     }
-  } catch (error) {
-    next(error);
+
+    req.user = user;
+    next();
+  } catch (error: any) {
+    if (error.name === 'JsonWebTokenError') {
+      next(createError('Invalid token', 401, 'AUTH_TOKEN_INVALID'));
+    } else if (error.name === 'TokenExpiredError') {
+      next(createError('Token expired', 401, 'AUTH_TOKEN_EXPIRED'));
+    } else {
+      next(error);
+    }
   }
 };
