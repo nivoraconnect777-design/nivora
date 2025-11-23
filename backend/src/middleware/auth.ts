@@ -17,7 +17,8 @@ export const authenticate = async (
   next: NextFunction
 ) => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    // Try to get token from cookie first (production), then from Authorization header (fallback)
+    const token = req.cookies?.accessToken || req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
       throw createError('No token provided', 401, 'AUTH_TOKEN_MISSING');
