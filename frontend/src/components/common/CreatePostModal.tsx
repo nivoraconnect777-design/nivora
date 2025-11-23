@@ -24,7 +24,7 @@ export default function CreatePostModal() {
                 img.src = event.target?.result as string;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1080; // Reasonable max width for posts
+                    const MAX_WIDTH = 800; // Reduced for better compression
                     let width = img.width;
                     let height = img.height;
 
@@ -39,9 +39,22 @@ export default function CreatePostModal() {
                     const ctx = canvas.getContext('2d');
                     ctx?.drawImage(img, 0, 0, width, height);
 
-                    // Compress to JPEG with 0.8 quality
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                    resolve(dataUrl);
+                    // Start with lower quality for better compression
+                    let quality = 0.6;
+                    let dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+                    // If still too large (>3MB base64), reduce quality further
+                    const MAX_SIZE = 3 * 1024 * 1024; // 3MB in bytes
+                    while (dataUrl.length > MAX_SIZE && quality > 0.1) {
+                        quality -= 0.1;
+                        dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    }
+
+                    if (dataUrl.length > MAX_SIZE) {
+                        reject(new Error('Image is too large even after compression. Please use a smaller image.'));
+                    } else {
+                        resolve(dataUrl);
+                    }
                 };
                 img.onerror = (error) => reject(error);
             };
