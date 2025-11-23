@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as mediaController from '../controllers/mediaController';
-import { authenticate } from '../middleware/authMiddleware';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
