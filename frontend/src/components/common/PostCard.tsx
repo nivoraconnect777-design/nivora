@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, MoreHorizontal, Send } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Send, Bookmark } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Post } from '../../types/post';
 import { useAuthStore } from '../../stores/authStore';
 import { formatDistanceToNow } from 'date-fns';
+import toast from 'react-hot-toast';
 
 interface PostCardProps {
     post: Post;
@@ -16,6 +17,7 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
     const { user } = useAuthStore();
     const isOwner = user?.id === post.userId;
     const [showHeart, setShowHeart] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
 
     const handleDoubleClick = () => {
         if (!post.isLiked) {
@@ -31,6 +33,31 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
             setShowHeart(true);
             setTimeout(() => setShowHeart(false), 800);
         }
+    };
+
+    const handleShare = async () => {
+        const shareData = {
+            title: `Post by ${post.user.username}`,
+            text: post.caption || 'Check out this post on Nivora!',
+            url: window.location.href, // Ideally this should be a specific post URL
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error('Error sharing:', err);
+            }
+        } else {
+            // Fallback to clipboard
+            navigator.clipboard.writeText(window.location.href);
+            toast.success('Link copied to clipboard!');
+        }
+    };
+
+    const toggleSave = () => {
+        setIsSaved(!isSaved);
+        toast.success(isSaved ? 'Post unsaved' : 'Post saved');
     };
 
     return (
@@ -118,7 +145,7 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
                                 }`}
                         >
                             <Heart
-                                className={`w-7 h-7 ${post.isLiked ? 'fill-current drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : ''}`}
+                                className={`w-6 h-6 ${post.isLiked ? 'fill-current drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : ''}`}
                             />
                         </motion.button>
 
@@ -127,16 +154,26 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
                             onClick={() => onComment?.(post.id)}
                             className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors"
                         >
-                            <MessageCircle className="w-7 h-7" />
+                            <MessageCircle className="w-6 h-6" />
                         </motion.button>
 
                         <motion.button
                             whileTap={{ scale: 0.9 }}
+                            onClick={handleShare}
                             className="text-gray-600 dark:text-gray-300 hover:text-green-500 transition-colors"
                         >
-                            <Send className="w-7 h-7" />
+                            <Send className="w-6 h-6" />
                         </motion.button>
                     </div>
+
+                    {/* Save Button */}
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={toggleSave}
+                        className={`text-gray-600 dark:text-gray-300 hover:text-yellow-500 transition-colors ${isSaved ? 'text-yellow-500' : ''}`}
+                    >
+                        <Bookmark className={`w-6 h-6 ${isSaved ? 'fill-current' : ''}`} />
+                    </motion.button>
                 </div>
 
                 {/* Likes Count */}
