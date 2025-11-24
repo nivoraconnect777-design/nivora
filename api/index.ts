@@ -12,6 +12,7 @@ import mediaRoutes from '../backend/src/routes/mediaRoutes';
 import exploreRoutes from '../backend/src/routes/exploreRoutes';
 import reelsRoutes from '../backend/src/routes/reelsRoutes';
 import postRoutes from '../backend/src/routes/postRoutes';
+import messageRoutes from '../backend/src/routes/messageRoutes';
 
 // Import middleware
 import { errorHandler } from '../backend/src/middleware/errorHandler';
@@ -37,14 +38,16 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // Routes
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/follow', followRoutes);
+app.use('/api/users', followRoutes); // Changed from /api/follow to match frontend
 app.use('/api/search', searchRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/explore', exploreRoutes);
 app.use('/api/reels', reelsRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Error handling
 app.use(notFoundHandler);
