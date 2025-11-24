@@ -198,7 +198,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
 export const getCurrentUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
 
     if (!userId) {
       throw createError('Unauthorized', 401, 'UNAUTHORIZED');
