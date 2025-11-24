@@ -40,18 +40,27 @@ export const authenticate = async (
     }
 
     let user;
-    try {
-      user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
-        select: {
-          id: true,
-          username: true,
-          email: true,
-        },
-      });
-    } catch (dbError) {
-      console.error('Auth Middleware Database Error:', dbError);
-      throw createError('Database connection failed during auth', 500, 'AUTH_DB_ERROR');
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        user = await prisma.user.findUnique({
+          where: { id: decoded.userId },
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        });
+        break; // Success
+      } catch (dbError) {
+        console.error(`Auth Middleware Database Error (Attempt ${4 - retries}):`, dbError);
+        retries--;
+        if (retries === 0) {
+          throw createError('Database connection failed during auth', 500, 'AUTH_DB_ERROR');
+        }
+        // Wait 500ms before retry
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
 
     if (!user) {
