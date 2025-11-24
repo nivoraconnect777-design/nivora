@@ -27,6 +27,15 @@ class UserService {
             following: true,
           },
         },
+        posts: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            likes: true,
+            comments: true,
+          },
+        },
       },
     });
 
@@ -43,6 +52,12 @@ class UserService {
       profilePicUrl: user.profilePicUrl,
       isVerified: user.isVerified,
       createdAt: user.createdAt,
+      posts: user.posts.map(post => ({
+        ...post,
+        likesCount: post.likes.length,
+        commentsCount: post.comments.length,
+        isLiked: false, // You might want to check this if you pass currentUserId
+      })),
       stats: {
         posts: user._count.posts,
         followers: user._count.followers,

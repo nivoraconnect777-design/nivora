@@ -91,6 +91,7 @@ export default function Sidebar() {
         />
 
         <button
+          id="create-post-trigger"
           onClick={openCreatePostModal}
           className={`w-full mt-4 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isDark
             ? 'text-gray-400 hover:text-white hover:bg-gray-800'

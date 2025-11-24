@@ -137,8 +137,8 @@ export default function ProfilePage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsEditModalOpen(true)}
                     className={`px-6 py-2 rounded-xl font-semibold transition-colors ${isDark
-                        ? 'bg-gray-700 text-white hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                       }`}
                   >
                     Edit Profile
@@ -147,8 +147,8 @@ export default function ProfilePage() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className={`p-2 rounded-xl transition-colors ${isDark
-                        ? 'bg-gray-700 text-white hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                       }`}
                   >
                     <Settings className="w-5 h-5" />
@@ -162,8 +162,8 @@ export default function ProfilePage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleMessage}
                     className={`px-6 py-2 rounded-xl font-semibold transition-colors flex items-center gap-2 ${isDark
-                        ? 'bg-gray-700 text-white hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                       }`}
                   >
                     <MessageCircle className="w-5 h-5" />
@@ -223,12 +223,12 @@ export default function ProfilePage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={`flex items-center gap-2 font-semibold transition-colors ${tab.id === 'posts'
-                  ? isDark
-                    ? 'text-white border-t-2 border-white -mt-[1px]'
-                    : 'text-gray-900 border-t-2 border-gray-900 -mt-[1px]'
-                  : isDark
-                    ? 'text-gray-500 hover:text-gray-300'
-                    : 'text-gray-500 hover:text-gray-700'
+                ? isDark
+                  ? 'text-white border-t-2 border-white -mt-[1px]'
+                  : 'text-gray-900 border-t-2 border-gray-900 -mt-[1px]'
+                : isDark
+                  ? 'text-gray-500 hover:text-gray-300'
+                  : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               <tab.icon className="w-5 h-5" />
@@ -238,35 +238,74 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Empty State */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-center py-20"
-      >
+      {/* Posts Grid or Empty State */}
+      {profileUser?.posts && profileUser.posts.length > 0 ? (
+        <div className="grid grid-cols-3 gap-1 md:gap-4">
+          {profileUser.posts.map((post: any) => (
+            <motion.div
+              key={post.id}
+              layoutId={post.id}
+              whileHover={{ scale: 1.02 }}
+              className="relative aspect-square group cursor-pointer overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800"
+              onClick={() => navigate(`/post/${post.id}`)} // Assuming you have a single post view
+            >
+              {post.mediaType === 'video' ? (
+                <video
+                  src={post.mediaUrl}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <img
+                  src={post.mediaUrl}
+                  alt={post.caption}
+                  className="w-full h-full object-cover"
+                />
+              )}
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">❤️</span>
+                  <span>{post.likesCount}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">💬</span>
+                  <span>{post.commentsCount}</span>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
         <motion.div
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-center py-20"
         >
-          <Camera className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
-        </motion.div>
-        <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          No posts yet
-        </h2>
-        <p className={`text-lg mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          {isOwnProfile ? 'Share your first photo or video' : `${profileUser?.username} hasn't posted yet`}
-        </p>
-        {isOwnProfile && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+          <motion.div
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
-            Create Post
-          </motion.button>
-        )}
-      </motion.div>
+            <Camera className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+          </motion.div>
+          <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            No posts yet
+          </h2>
+          <p className={`text-lg mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            {isOwnProfile ? 'Share your first photo or video' : `${profileUser?.username} hasn't posted yet`}
+          </p>
+          {isOwnProfile && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => document.getElementById('create-post-trigger')?.click()} // Hacky but works if we add ID to sidebar button
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+            >
+              Create Post
+            </motion.button>
+          )}
+        </motion.div>
+      )}
 
       {/* Edit Profile Modal */}
       <EditProfileModal
