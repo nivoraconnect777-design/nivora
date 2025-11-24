@@ -28,4 +28,9 @@ export interface Comment {
     postId: string;
     text: string;
     createdAt: string;
+    likesCount: number;
+    repliesCount: number;
+    isLiked: boolean;
+    replies?: Comment[];
+    parentCommentId?: string | null;
 }

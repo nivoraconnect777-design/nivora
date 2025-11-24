@@ -5,19 +5,20 @@ import { Post } from '../../types/post';
 import { useAuthStore } from '../../stores/authStore';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
+import InlineComments from '../post/InlineComments';
 
 interface PostCardProps {
     post: Post;
     onLike?: (postId: string) => void;
-    onComment?: (postId: string) => void;
     onDelete?: (postId: string) => void;
 }
 
-export default function PostCard({ post, onLike, onComment, onDelete }: PostCardProps) {
+export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
     const { user } = useAuthStore();
     const isOwner = user?.id === post.userId;
     const [showHeart, setShowHeart] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [showComments, setShowComments] = useState(false);
 
     const handleDoubleClick = () => {
         if (!post.isLiked) {
@@ -39,7 +40,7 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
         const shareData = {
             title: `Post by ${post.user.username}`,
             text: post.caption || 'Check out this post on Nivora!',
-            url: window.location.href, // Ideally this should be a specific post URL
+            url: window.location.href,
         };
 
         if (navigator.share) {
@@ -49,7 +50,6 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
                 console.error('Error sharing:', err);
             }
         } else {
-            // Fallback to clipboard
             navigator.clipboard.writeText(window.location.href);
             toast.success('Link copied to clipboard!');
         }
@@ -58,6 +58,10 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
     const toggleSave = () => {
         setIsSaved(!isSaved);
         toast.success(isSaved ? 'Post unsaved' : 'Post saved');
+    };
+
+    const toggleComments = () => {
+        setShowComments(!showComments);
     };
 
     return (
@@ -151,7 +155,7 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
 
                         <motion.button
                             whileTap={{ scale: 0.9 }}
-                            onClick={() => onComment?.(post.id)}
+                            onClick={toggleComments}
                             className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors"
                         >
                             <MessageCircle className="w-6 h-6" />
@@ -196,13 +200,20 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
                 {/* Comments Link */}
                 {post.commentsCount > 0 && (
                     <button
-                        onClick={() => onComment?.(post.id)}
-                        className="text-gray-500 dark:text-gray-400 text-sm font-medium hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                        onClick={toggleComments}
+                        className="text-gray-500 dark:text-gray-400 text-sm font-medium hover:text-gray-700 dark:hover:text-gray-300 transition-colors mb-2"
                     >
-                        View all {post.commentsCount} comments
+                        {showComments ? 'Hide comments' : `View all ${post.commentsCount} comments`}
                     </button>
                 )}
             </div>
+
+            {/* Inline Comments Section */}
+            <AnimatePresence>
+                {showComments && (
+                    <InlineComments postId={post.id} isOpen={showComments} />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

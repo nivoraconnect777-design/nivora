@@ -6,7 +6,6 @@ import { useAuthStore } from '../stores/authStore';
 import { useUIStore } from '../stores/uiStore';
 import { Users, Loader2 } from 'lucide-react';
 import PostCard from '../components/common/PostCard';
-import CommentsModal from '../components/common/CommentsModal';
 import { Post } from '../types/post';
 import api from '../lib/api';
 
@@ -17,8 +16,6 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -79,11 +76,6 @@ export default function HomePage() {
     }
   };
 
-  const handleComment = (postId: string) => {
-    setSelectedPostId(postId);
-    setIsCommentsModalOpen(true);
-  };
-
   const handleDelete = async (postId: string) => {
     try {
       await api.delete(`/api/posts/${postId}`);
@@ -107,7 +99,6 @@ export default function HomePage() {
               key={post.id}
               post={post}
               onLike={handleLike}
-              onComment={handleComment}
               onDelete={handleDelete}
             />
           ))}
@@ -141,25 +132,6 @@ export default function HomePage() {
             Explore Users
           </motion.button>
         </motion.div>
-      )}
-
-      {selectedPostId && (
-        <CommentsModal
-          isOpen={isCommentsModalOpen}
-          onClose={() => setIsCommentsModalOpen(false)}
-          postId={selectedPostId}
-          onCommentAdded={() => {
-            setPosts(posts.map(post => {
-              if (post.id === selectedPostId) {
-                return {
-                  ...post,
-                  commentsCount: post.commentsCount + 1
-                };
-              }
-              return post;
-            }));
-          }}
-        />
       )}
     </div>
   );
