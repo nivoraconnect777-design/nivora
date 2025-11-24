@@ -3,16 +3,25 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { createError } from './errorHandler';
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    username: string;
-    email: string;
-  };
+// Extend Express Request type globally
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        username: string;
+        email: string;
+      };
+      cookies?: any; // Add cookies property
+    }
+  }
 }
 
+// Export AuthRequest as an alias for Request for backward compatibility
+export type AuthRequest = Request;
+
 export const authenticate = async (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {

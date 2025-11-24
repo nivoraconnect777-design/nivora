@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import passport from '../config/passport';
 import * as authController from '../controllers/authController';
-import { authenticate } from '../middleware/authMiddleware';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
@@ -34,7 +34,7 @@ router.get(
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   (req, res) => {
     const result = req.user as any;
-    
+
     // Set httpOnly cookies for tokens (PRODUCTION STANDARD)
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
@@ -49,7 +49,7 @@ router.get(
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    
+
     // Redirect to frontend (tokens are now in cookies)
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     res.redirect(`${frontendUrl}/auth/callback?success=true`);
