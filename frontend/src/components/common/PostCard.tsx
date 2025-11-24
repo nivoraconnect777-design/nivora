@@ -1,5 +1,6 @@
-import React from 'react';
-import { Heart, MessageCircle, MoreHorizontal, Share2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, MessageCircle, MoreHorizontal, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Post } from '../../types/post';
 import { useAuthStore } from '../../stores/authStore';
 import { formatDistanceToNow } from 'date-fns';
@@ -14,13 +15,30 @@ interface PostCardProps {
 export default function PostCard({ post, onLike, onComment, onDelete }: PostCardProps) {
     const { user } = useAuthStore();
     const isOwner = user?.id === post.userId;
+    const [showHeart, setShowHeart] = useState(false);
+
+    const handleDoubleClick = () => {
+        if (!post.isLiked) {
+            onLike?.(post.id);
+        }
+        setShowHeart(true);
+        setTimeout(() => setShowHeart(false), 800);
+    };
+
+    const handleLikeClick = () => {
+        onLike?.(post.id);
+        if (!post.isLiked) {
+            setShowHeart(true);
+            setTimeout(() => setShowHeart(false), 800);
+        }
+    };
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
                         {post.user.profilePicUrl ? (
                             <img
                                 src={post.user.profilePicUrl}
@@ -34,7 +52,7 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
                         )}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                        <h3 className="font-semibold text-gray-900 dark:text-white cursor-pointer hover:underline">
                             {post.user.username}
                         </h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -54,49 +72,79 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
             </div>
 
             {/* Media */}
-            <div className="relative bg-gray-100 dark:bg-gray-900 max-h-[600px] overflow-hidden">
+            <div
+                className="relative bg-gray-100 dark:bg-gray-900 max-h-[600px] overflow-hidden cursor-pointer"
+                onDoubleClick={handleDoubleClick}
+            >
                 {post.mediaType === 'video' ? (
                     <video
                         src={post.mediaUrl}
                         controls
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain mx-auto"
                         poster={post.thumbnailUrl || undefined}
                     />
                 ) : (
                     <img
                         src={post.mediaUrl}
                         alt={post.caption || 'Post content'}
-                        className="w-full h-auto object-contain"
+                        className="w-full h-full object-contain mx-auto"
                     />
                 )}
+
+                {/* Heart Animation Overlay */}
+                <AnimatePresence>
+                    {showHeart && (
+                        <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1.2, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                        >
+                            <Heart className="w-32 h-32 text-white fill-white drop-shadow-2xl" />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Actions */}
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-4">
-                        <button
-                            onClick={() => onLike?.(post.id)}
+                        <motion.button
+                            whileTap={{ scale: 0.8 }}
+                            onClick={handleLikeClick}
                             className={`flex items-center space-x-1 transition-colors ${post.isLiked ? 'text-red-500' : 'text-gray-600 dark:text-gray-300 hover:text-red-500'
                                 }`}
                         >
-                            <Heart className={`w-6 h-6 ${post.isLiked ? 'fill-current' : ''}`} />
-                            {post.likesCount > 0 && <span className="font-medium">{post.likesCount}</span>}
-                        </button>
+                            <Heart
+                                className={`w-7 h-7 ${post.isLiked ? 'fill-current drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : ''}`}
+                            />
+                        </motion.button>
 
-                        <button
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => onComment?.(post.id)}
                             className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors"
                         >
-                            <MessageCircle className="w-6 h-6" />
-                            {post.commentsCount > 0 && <span className="font-medium">{post.commentsCount}</span>}
-                        </button>
+                            <MessageCircle className="w-7 h-7" />
+                        </motion.button>
 
-                        <button className="text-gray-600 dark:text-gray-300 hover:text-green-500 transition-colors">
-                            <Share2 className="w-6 h-6" />
-                        </button>
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            className="text-gray-600 dark:text-gray-300 hover:text-green-500 transition-colors"
+                        >
+                            <Send className="w-7 h-7" />
+                        </motion.button>
                     </div>
                 </div>
+
+                {/* Likes Count */}
+                {post.likesCount > 0 && (
+                    <div className="mb-2 font-semibold text-gray-900 dark:text-white">
+                        {post.likesCount} {post.likesCount === 1 ? 'like' : 'likes'}
+                    </div>
+                )}
 
                 {/* Caption */}
                 {post.caption && (
@@ -106,6 +154,16 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
                         </span>
                         <span className="text-gray-700 dark:text-gray-300">{post.caption}</span>
                     </div>
+                )}
+
+                {/* Comments Link */}
+                {post.commentsCount > 0 && (
+                    <button
+                        onClick={() => onComment?.(post.id)}
+                        className="text-gray-500 dark:text-gray-400 text-sm font-medium hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    >
+                        View all {post.commentsCount} comments
+                    </button>
                 )}
             </div>
         </div>

@@ -16,6 +16,7 @@ import ProfilePage from './pages/ProfilePage';
 import SearchPage from './pages/SearchPage';
 import ExplorePage from './pages/ExplorePage';
 import MessagesPage from './pages/MessagesPage';
+import PostPage from './pages/PostPage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -79,6 +80,7 @@ function App() {
               <Route path="/messages" element={<MessagesPage />} />
               <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
               <Route path="/profile/:username" element={<ProfilePage />} />
+              <Route path="/post/:id" element={<PostPage />} />
               <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
             </Route>
           </Routes>

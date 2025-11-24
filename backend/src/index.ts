@@ -53,44 +53,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes
-app.get('/api', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Social Media API',
-    version: '1.0.0',
-  });
-});
 
-// Authentication routes
-app.use('/api/auth', authRoutes);
-
-// User routes
-app.use('/api/users', userRoutes);
-
-// Media routes
-app.use('/api/media', mediaRoutes);
-
-// Follow routes
-app.use('/api/users', followRoutes);
-
-// Search routes
-app.use('/api/search', searchRoutes);
-
-// Post routes
-app.use('/api/posts', postRoutes);
-
-// Test routes (REMOVE IN PRODUCTION)
-if (process.env.NODE_ENV === 'development') {
-  app.use('/api/test', testRoutes);
-  console.log('🧪 Test routes enabled at /api/test');
-}
-
-// 404 handler
-app.use(notFoundHandler);
-
-// Error handler (must be last)
-app.use(errorHandler);
 
 // Create HTTP server
 import { createServer } from 'http';
