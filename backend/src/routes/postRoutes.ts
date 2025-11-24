@@ -9,6 +9,7 @@ import {
     addComment,
     getComments,
 } from '../controllers/postController';
+import { toggleCommentLike } from '../controllers/commentController';
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.delete('/:id', deletePost as RequestHandler);
 router.post('/:id/like', toggleLike as RequestHandler);
 router.post('/:id/comments', addComment as RequestHandler);
 router.get('/:id/comments', getComments as RequestHandler);
+router.post('/comments/:commentId/like', toggleCommentLike as RequestHandler);
 
 export default router;

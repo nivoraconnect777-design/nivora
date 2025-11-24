@@ -31,6 +31,7 @@ model User {
   stories       Story[]
   comments      Comment[]
   likes         Like[]
+  commentLikes  CommentLike[]
 
   followers     Follow[] @relation("UserFollowers")
   following     Follow[] @relation("UserFollowing")
@@ -135,11 +136,34 @@ model Comment {
   reelId    String?
   reel      Reel?    @relation(fields: [reelId], references: [id], onDelete: Cascade)
   text      String   @db.VarChar(500)
+  
+  // Nested comments support
+  parentCommentId String?
+  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         Comment[] @relation("CommentReplies")
+  
+  // Comment likes
+  likes     CommentLike[]
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([postId])
   @@index([reelId])
+  @@index([userId])
+  @@index([parentCommentId])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, commentId])
+  @@index([commentId])
   @@index([userId])
 }
 

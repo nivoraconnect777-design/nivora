@@ -216,7 +216,7 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
 export const addComment = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
-        const { text } = req.body;
+        const { text, parentCommentId } = req.body;
         const userId = req.user?.id;
 
         if (!userId) {
@@ -232,6 +232,7 @@ export const addComment = async (req: AuthRequest, res: Response) => {
                 userId,
                 postId: id,
                 text,
+                parentCommentId: parentCommentId || null,
             },
             include: {
                 user: {
@@ -241,10 +242,24 @@ export const addComment = async (req: AuthRequest, res: Response) => {
                         profilePicUrl: true,
                     },
                 },
+                _count: {
+                    select: {
+                        likes: true,
+                        replies: true,
+                    },
+                },
             },
         });
 
-        res.status(201).json({ success: true, comment });
+        const transformedComment = {
+            ...comment,
+            likesCount: comment._count.likes,
+            repliesCount: comment._count.replies,
+            isLiked: false,
+            _count: undefined,
+        };
+
+        res.status(201).json({ success: true, comment: transformedComment });
     } catch (error) {
         console.error('Add comment error:', error);
         res.status(500).json({ success: false, message: 'Error adding comment' });
@@ -254,10 +269,13 @@ export const addComment = async (req: AuthRequest, res: Response) => {
 export const getComments = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
+        const userId = req.user?.id;
 
+        // Fetch top-level comments with nested replies
         const comments = await prisma.comment.findMany({
             where: {
                 postId: id,
+                parentCommentId: null, // Only top-level comments
             },
             include: {
                 user: {
@@ -267,13 +285,65 @@ export const getComments = async (req: AuthRequest, res: Response) => {
                         profilePicUrl: true,
                     },
                 },
+                _count: {
+                    select: {
+                        likes: true,
+                        replies: true,
+                    },
+                },
+                likes: userId ? {
+                    where: { userId },
+                    select: { userId: true },
+                } : false,
+                replies: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                profilePicUrl: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                likes: true,
+                                replies: true,
+                            },
+                        },
+                        likes: userId ? {
+                            where: { userId },
+                            select: { userId: true },
+                        } : false,
+                    },
+                    orderBy: {
+                        createdAt: 'asc',
+                    },
+                },
             },
             orderBy: {
                 createdAt: 'desc',
             },
         });
 
-        res.status(200).json({ success: true, comments });
+        // Transform comments to include isLiked and counts
+        const transformedComments = comments.map(comment => ({
+            ...comment,
+            likesCount: comment._count.likes,
+            repliesCount: comment._count.replies,
+            isLiked: Array.isArray(comment.likes) && comment.likes.length > 0,
+            replies: comment.replies.map(reply => ({
+                ...reply,
+                likesCount: reply._count.likes,
+                repliesCount: reply._count.replies,
+                isLiked: Array.isArray(reply.likes) && reply.likes.length > 0,
+                likes: undefined,
+                _count: undefined,
+            })),
+            likes: undefined,
+            _count: undefined,
+        }));
+
+        res.status(200).json({ success: true, comments: transformedComments });
     } catch (error) {
         console.error('Get comments error:', error);
         res.status(500).json({ success: false, message: 'Error fetching comments' });
