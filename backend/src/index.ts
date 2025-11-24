@@ -15,6 +15,7 @@ import mediaRoutes from './routes/mediaRoutes';
 import followRoutes from './routes/followRoutes';
 import searchRoutes from './routes/searchRoutes';
 import postRoutes from './routes/postRoutes';
+import healthRoutes from './routes/healthRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -107,6 +108,9 @@ app.use('/api/posts', postRoutes);
 
 // Message routes
 app.use('/api/messages', messageRoutes);
+
+// Health check routes
+app.use('/api', healthRoutes);
 
 // Test routes (REMOVE IN PRODUCTION)
 if (process.env.NODE_ENV === 'development') {
