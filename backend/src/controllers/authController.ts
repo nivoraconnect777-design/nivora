@@ -44,17 +44,20 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const result = await authService.login({ emailOrUsername, password });
 
     // Set httpOnly cookies for tokens (PRODUCTION STANDARD)
+    // Set httpOnly cookies for tokens (PRODUCTION STANDARD)
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
+      path: '/',
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -103,7 +106,8 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
+      path: '/',
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
@@ -143,7 +147,7 @@ export const logout = async (req: Request, res: Response) => {
   // Clear httpOnly cookies
   res.clearCookie('accessToken');
   res.clearCookie('refreshToken');
-  
+
   res.json({
     success: true,
     message: 'Logged out successfully',
