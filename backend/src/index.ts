@@ -16,6 +16,12 @@ import followRoutes from './routes/followRoutes';
 import searchRoutes from './routes/searchRoutes';
 import postRoutes from './routes/postRoutes';
 import healthRoutes from './routes/healthRoutes';
+import messageRoutes from './routes/messageRoutes';
+import reelsRoutes from './routes/reelsRoutes';
+import storyRoutes from './routes/storyRoutes';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import { initializeSocket } from './socket/socketHandler';
 
 // Load environment variables
 dotenv.config();
@@ -45,23 +51,7 @@ app.use(
 // Initialize Passport
 app.use(passport.initialize());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-  });
-});
-
-
-
 // Create HTTP server
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import { initializeSocket } from './socket/socketHandler';
-import messageRoutes from './routes/messageRoutes';
-
 const httpServer = createServer(app);
 
 // Initialize Socket.io
@@ -108,6 +98,12 @@ app.use('/api/posts', postRoutes);
 
 // Message routes
 app.use('/api/messages', messageRoutes);
+
+// Reels routes
+app.use('/api/reels', reelsRoutes);
+
+// Story routes
+app.use('/api/stories', storyRoutes);
 
 // Health check routes
 app.use('/api', healthRoutes);

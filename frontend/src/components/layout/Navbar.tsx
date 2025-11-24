@@ -4,6 +4,7 @@ import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut } from 'luci
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
 import toast from 'react-hot-toast';
+import StoryTray from '../stories/StoryTray';
 
 export default function Navbar() {
   const location = useLocation();
@@ -32,6 +33,11 @@ export default function Navbar() {
               {/* Expandable Search */}
               <ExpandableSearch isDark={isDark} />
 
+              {/* Story Tray */}
+              <div className="flex-1 flex justify-center mx-4 overflow-hidden">
+                <StoryTray isDark={isDark} />
+              </div>
+
               {/* Right Actions */}
               <div className="flex items-center gap-2">
                 {/* Theme Toggle */}
@@ -40,8 +46,8 @@ export default function Navbar() {
                   whileTap={{ scale: 0.95 }}
                   onClick={toggleTheme}
                   className={`p-2.5 rounded-xl transition-colors ${isDark
-                      ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   title={isDark ? 'Light Mode' : 'Dark Mode'}
                 >
@@ -54,8 +60,8 @@ export default function Navbar() {
                   whileTap={{ scale: 0.95 }}
                   onClick={handleLogout}
                   className={`p-2.5 rounded-xl transition-colors ${isDark
-                      ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                      : 'bg-red-50 text-red-600 hover:bg-red-100'
+                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                    : 'bg-red-50 text-red-600 hover:bg-red-100'
                     }`}
                   title="Logout"
                 >
@@ -102,12 +108,12 @@ function MobileNavLink({ to, icon: Icon, active, isDark }: MobileNavLinkProps) {
       <motion.div
         whileTap={{ scale: 0.9 }}
         className={`flex flex-col items-center justify-center h-full transition-colors ${active
-            ? isDark
-              ? 'text-blue-400'
-              : 'text-blue-600'
-            : isDark
-              ? 'text-gray-500'
-              : 'text-gray-600'
+          ? isDark
+            ? 'text-blue-400'
+            : 'text-blue-600'
+          : isDark
+            ? 'text-gray-500'
+            : 'text-gray-600'
           }`}
       >
         <Icon className="w-6 h-6" />
@@ -155,8 +161,8 @@ function ExpandableSearch({ isDark }: { isDark: boolean }) {
         animate={{ width: isExpanded ? 300 : 48 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className={`relative flex items-center h-12 rounded-xl overflow-hidden transition-colors ${isDark
-            ? isExpanded ? 'bg-gray-800 ring-2 ring-blue-500/50' : 'bg-gray-800 hover:bg-gray-700'
-            : isExpanded ? 'bg-gray-100 ring-2 ring-blue-500/20' : 'bg-gray-100 hover:bg-gray-200'
+          ? isExpanded ? 'bg-gray-800 ring-2 ring-blue-500/50' : 'bg-gray-800 hover:bg-gray-700'
+          : isExpanded ? 'bg-gray-100 ring-2 ring-blue-500/20' : 'bg-gray-100 hover:bg-gray-200'
           }`}
       >
         <button

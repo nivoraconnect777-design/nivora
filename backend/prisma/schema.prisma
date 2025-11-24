@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -29,6 +30,7 @@ model User {
   posts         Post[]
   reels         Reel[]
   stories       Story[]
+  storyViews    StoryView[]
   comments      Comment[]
   likes         Like[]
   commentLikes  CommentLike[]
@@ -94,8 +96,23 @@ model Story {
   createdAt DateTime @default(now())
   expiresAt DateTime
 
+  views     StoryView[]
+
   @@index([userId])
   @@index([expiresAt])
+}
+
+model StoryView {
+  id        String   @id @default(cuid())
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewerId  String
+  viewer    User     @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+  viewedAt  DateTime @default(now())
+
+  @@unique([storyId, viewerId])
+  @@index([storyId])
+  @@index([viewerId])
 }
 
 model Follow {
