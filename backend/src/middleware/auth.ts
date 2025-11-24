@@ -35,14 +35,24 @@ export const authenticate = async (
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
 
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-      },
-    });
+    if (!decoded.userId) {
+      throw createError('Invalid token payload', 401, 'AUTH_TOKEN_INVALID');
+    }
+
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+        },
+      });
+    } catch (dbError) {
+      console.error('Auth Middleware Database Error:', dbError);
+      throw createError('Database connection failed during auth', 500, 'AUTH_DB_ERROR');
+    }
 
     if (!user) {
       throw createError('User not found', 401, 'AUTH_USER_NOT_FOUND');
@@ -51,6 +61,7 @@ export const authenticate = async (
     req.user = user;
     next();
   } catch (error: any) {
+    console.error('Auth Middleware Error:', error);
     if (error.name === 'JsonWebTokenError') {
       next(createError('Invalid token', 401, 'AUTH_TOKEN_INVALID'));
     } else if (error.name === 'TokenExpiredError') {
