@@ -25,11 +25,15 @@ interface GoogleUserData {
 
 class AuthService {
   private generateToken(userId: string, expiresIn: string): string {
-    return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn });
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error('JWT_SECRET is not defined');
+    return jwt.sign({ userId }, secret, { expiresIn });
   }
 
   private generateRefreshToken(userId: string): string {
-    return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET as string, {
+    const secret = process.env.JWT_REFRESH_SECRET;
+    if (!secret) throw new Error('JWT_REFRESH_SECRET is not defined');
+    return jwt.sign({ userId }, secret, {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     });
   }
@@ -76,7 +80,7 @@ class AuthService {
     // Send verification email
     console.log('📧 Sending verification email to:', user.email);
     const emailSent = await emailService.sendVerificationEmail(user.email, verificationToken);
-    
+
     if (!emailSent) {
       console.warn('⚠️ Verification email failed to send, but user was created');
     } else {
@@ -247,7 +251,9 @@ class AuthService {
 
   async refreshToken(refreshToken: string) {
     try {
-      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as {
+      const secret = process.env.JWT_REFRESH_SECRET;
+      if (!secret) throw new Error('JWT_REFRESH_SECRET is not defined');
+      const decoded = jwt.verify(refreshToken, secret) as {
         userId: string;
       };
 
@@ -321,7 +327,7 @@ class AuthService {
 
     console.log('📧 Sending password reset email to:', user.email);
     const emailSent = await emailService.sendPasswordResetEmail(user.email, resetToken);
-    
+
     if (!emailSent) {
       console.warn('⚠️ Password reset email failed to send');
     } else {

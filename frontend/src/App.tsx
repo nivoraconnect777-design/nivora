@@ -16,7 +16,7 @@ import ProfilePage from './pages/ProfilePage';
 import SearchPage from './pages/SearchPage';
 import ExplorePage from './pages/ExplorePage';
 import ChatPage from './pages/ChatPage';
-
+import NotificationsPage from './pages/NotificationsPage';
 import PostPage from './pages/PostPage';
 
 // Create a client
@@ -77,9 +77,8 @@ function App() {
               <Route path="/home" element={<HomePage />} />
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/search" element={<SearchPage />} />
-              <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/messages" element={<ChatPage />} />
-
               <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
               <Route path="/profile/:username" element={<ProfilePage />} />
               <Route path="/post/:id" element={<PostPage />} />

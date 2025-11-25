@@ -205,6 +205,20 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
                     postId: id,
                 },
             });
+
+            // Create notification for post owner (if not liking own post)
+            const post = await prisma.post.findUnique({ where: { id } });
+            if (post && post.userId !== userId) {
+                await prisma.notification.create({
+                    data: {
+                        recipientId: post.userId,
+                        actorId: userId,
+                        type: 'like',
+                        postId: id,
+                    },
+                });
+            }
+
             res.status(200).json({ success: true, isLiked: true });
         }
     } catch (error) {
@@ -250,6 +264,20 @@ export const addComment = async (req: AuthRequest, res: Response) => {
                 },
             },
         });
+
+        // Create notification for post owner (if not commenting on own post)
+        const post = await prisma.post.findUnique({ where: { id } });
+        if (post && post.userId !== userId) {
+            await prisma.notification.create({
+                data: {
+                    recipientId: post.userId,
+                    actorId: userId,
+                    type: 'comment',
+                    postId: id,
+                    commentId: comment.id,
+                },
+            });
+        }
 
         const transformedComment = {
             ...comment,
