@@ -15,6 +15,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import SearchPage from './pages/SearchPage';
 import ExplorePage from './pages/ExplorePage';
+import ChatPage from './pages/ChatPage';
 
 import PostPage from './pages/PostPage';
 
@@ -77,6 +78,7 @@ function App() {
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
+              <Route path="/messages" element={<ChatPage />} />
 
               <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
               <Route path="/profile/:username" element={<ProfilePage />} />

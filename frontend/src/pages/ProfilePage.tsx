@@ -22,26 +22,9 @@ export default function ProfilePage() {
   const isOwnProfile = !username || username === currentUser?.username;
 
   // Handle message button click
-  const handleMessage = async () => {
-    if (!profileUser) {
-      toast.error('User profile not loaded');
-      return;
-    }
-
-    try {
-      // Create or get conversation with this user
-      await api.post('/api/messages', {
-        receiverId: profileUser.id,
-        text: '', // Empty initial message just to create conversation
-      });
-
-      // Navigate to messages page
-      navigate('/messages');
-    } catch (error: any) {
-      console.error('Error creating conversation:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to start conversation';
-      toast.error(errorMessage);
-    }
+  const handleMessage = () => {
+    if (!profileUser) return;
+    navigate('/messages', { state: { targetUserId: profileUser.id } });
   };
 
   // Fetch profile data

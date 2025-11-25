@@ -77,64 +77,39 @@ app.get('/api', (req, res) => {
     message: 'Social Media API',
     version: '1.0.0',
   });
-});
 
-// Authentication routes
-app.use('/api/auth', authRoutes);
+  // Reels routes
+  app.use('/api/reels', reelsRoutes);
 
-// User routes
-app.use('/api/users', userRoutes);
+  // Story routes
+  app.use('/api/stories', storyRoutes);
 
-// Media routes
-app.use('/api/media', mediaRoutes);
+  // Health check routes
+  app.use('/api', healthRoutes);
 
-// Follow routes
-app.use('/api/users', followRoutes);
-
-// Search routes
-app.use('/api/search', searchRoutes);
-
-// Post routes
-app.use('/api/posts', postRoutes);
-
-// Stream routes
-app.use('/api/stream', streamRoutes);
-
-// Message routes
-
-
-// Reels routes
-app.use('/api/reels', reelsRoutes);
-
-// Story routes
-app.use('/api/stories', storyRoutes);
-
-// Health check routes
-app.use('/api', healthRoutes);
-
-// Test routes (REMOVE IN PRODUCTION)
-if (process.env.NODE_ENV === 'development') {
-  app.use('/api/test', testRoutes);
-  console.log('🧪 Test routes enabled at /api/test');
-}
-
-// 404 handler
-app.use(notFoundHandler);
-
-// Error handler (must be last)
-app.use(errorHandler);
-
-// Start server
-httpServer.listen(PORT, async () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-
-  // Test database connection
-  try {
-    await prisma.$connect();
-    console.log('✅ Database connected successfully');
-  } catch (error) {
-    console.error('❌ Database connection failed:', error);
+  // Test routes (REMOVE IN PRODUCTION)
+  if (process.env.NODE_ENV === 'development') {
+    app.use('/api/test', testRoutes);
+    console.log('🧪 Test routes enabled at /api/test');
   }
-});
+
+  // 404 handler
+  app.use(notFoundHandler);
+
+  // Error handler (must be last)
+  app.use(errorHandler);
+
+  // Start server
+  httpServer.listen(PORT, async () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+
+    // Test database connection
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected successfully');
+    } catch (error) {
+      console.error('❌ Database connection failed:', error);
+    }
+  });

@@ -50,7 +50,7 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
                     className="flex flex-col items-center gap-1 min-w-[80px]"
                 >
                     <div className="relative">
-                        <div className={`w-16 h-16 rounded-full p-[3px] border-2 border-dashed ${isDark ? 'border-gray-600' : 'border-gray-300'
+                        <div className={`w-20 h-20 rounded-full p-[3px] border-2 border-dashed ${isDark ? 'border-gray-600' : 'border-gray-300'
                             }`}>
                             <div className={`w-full h-full rounded-full overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-gray-100'
                                 }`}>
@@ -93,7 +93,7 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
                             onClick={() => handleStoryClick(index)}
                             className="flex flex-col items-center gap-1 min-w-[80px]"
                         >
-                            <div className={`w-16 h-16 rounded-full p-[3px] ${storyUser.hasUnseen
+                            <div className={`w-20 h-20 rounded-full p-[3px] ${storyUser.hasUnseen
                                 ? 'bg-gradient-to-tr from-yellow-400 via-orange-500 to-fuchsia-600'
                                 : isDark ? 'bg-gray-700' : 'bg-gray-300'
                                 }`}>

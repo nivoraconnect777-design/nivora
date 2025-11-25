@@ -37,27 +37,7 @@ export const initializeSocket = (io: Server) => {
             socket.join(socket.user.id);
         }
 
-        // Join a conversation room
-        socket.on('join_conversation', (conversationId: string) => {
-            socket.join(conversationId);
-            console.log(`User ${socket.user?.username} joined conversation ${conversationId}`);
-        });
 
-        // Leave a conversation room
-        socket.on('leave_conversation', (conversationId: string) => {
-            socket.leave(conversationId);
-            console.log(`User ${socket.user?.username} left conversation ${conversationId}`);
-        });
-
-        // Handle typing status
-        socket.on('typing', (data: { conversationId: string; isTyping: boolean }) => {
-            socket.to(data.conversationId).emit('user_typing', {
-                userId: socket.user?.id,
-                username: socket.user?.username,
-                isTyping: data.isTyping,
-                conversationId: data.conversationId
-            });
-        });
 
         // Handle new message (mostly for optimistic updates or specific events, 
         // actual message saving should be done via API to ensure consistency)

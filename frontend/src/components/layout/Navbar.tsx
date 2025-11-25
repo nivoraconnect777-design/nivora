@@ -20,17 +20,18 @@ export default function Navbar() {
   };
 
   const isActive = (path: string) => location.pathname === path;
+  const isHomePage = location.pathname === '/' || location.pathname === '/home';
 
   return (
     <>
       {/* Desktop Top Bar - Search and Actions */}
-      {isAuthenticated && (
+      {isAuthenticated && isHomePage && (
         <nav
           className={`hidden md:block fixed top-0 left-64 right-0 z-40 backdrop-blur-xl border-b ${isDark ? 'bg-gray-900/80 border-gray-800' : 'bg-white/80 border-gray-200'
             }`}
         >
           <div className="px-6">
-            <div className="flex items-center justify-between h-24">
+            <div className="flex items-center justify-between h-32">
               {/* Expandable Search */}
               <ExpandableSearch isDark={isDark} />
 
@@ -91,7 +92,7 @@ export default function Navbar() {
       )}
 
       {/* Spacer for fixed navbar */}
-      {isAuthenticated && <div className="h-24 hidden md:block" />}
+      {isAuthenticated && isHomePage && <div className="h-32 hidden md:block" />}
     </>
   );
 }
