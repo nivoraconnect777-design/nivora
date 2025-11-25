@@ -15,7 +15,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import SearchPage from './pages/SearchPage';
 import ExplorePage from './pages/ExplorePage';
-import MessagesPage from './pages/MessagesPage';
+
 import PostPage from './pages/PostPage';
 
 // Create a client
@@ -77,7 +77,7 @@ function App() {
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
-              <Route path="/messages" element={<MessagesPage />} />
+
               <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
               <Route path="/profile/:username" element={<ProfilePage />} />
               <Route path="/post/:id" element={<PostPage />} />

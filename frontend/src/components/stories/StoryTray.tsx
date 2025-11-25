@@ -41,16 +41,16 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
 
     return (
         <>
-            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar max-w-xl px-2">
+            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar h-full px-2">
                 {/* Add Story Button */}
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="flex flex-col items-center gap-1 min-w-[60px]"
+                    className="flex flex-col items-center gap-1 min-w-[80px]"
                 >
                     <div className="relative">
-                        <div className={`w-10 h-10 rounded-full p-[2px] border-2 border-dashed ${isDark ? 'border-gray-600' : 'border-gray-300'
+                        <div className={`w-16 h-16 rounded-full p-[3px] border-2 border-dashed ${isDark ? 'border-gray-600' : 'border-gray-300'
                             }`}>
                             <div className={`w-full h-full rounded-full overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-gray-100'
                                 }`}>
@@ -69,11 +69,11 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
                                 )}
                             </div>
                         </div>
-                        <div className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-0.5 border-2 border-black">
-                            <Plus className="w-3 h-3 text-white" />
+                        <div className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1 border-2 border-black">
+                            <Plus className="w-4 h-4 text-white" />
                         </div>
                     </div>
-                    <span className={`text-[10px] truncate w-full text-center ${isDark ? 'text-gray-400' : 'text-gray-600'
+                    <span className={`text-xs truncate w-full text-center font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'
                         }`}>
                         Your Story
                     </span>
@@ -91,11 +91,11 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleStoryClick(index)}
-                            className="flex flex-col items-center gap-1 min-w-[60px]"
+                            className="flex flex-col items-center gap-1 min-w-[80px]"
                         >
-                            <div className={`w-10 h-10 rounded-full p-[2px] ${storyUser.hasUnseen
-                                    ? 'bg-gradient-to-tr from-yellow-400 to-fuchsia-600'
-                                    : isDark ? 'bg-gray-700' : 'bg-gray-300'
+                            <div className={`w-16 h-16 rounded-full p-[3px] ${storyUser.hasUnseen
+                                ? 'bg-gradient-to-tr from-yellow-400 via-orange-500 to-fuchsia-600'
+                                : isDark ? 'bg-gray-700' : 'bg-gray-300'
                                 }`}>
                                 <div className={`w-full h-full rounded-full border-2 ${isDark ? 'border-black' : 'border-white'
                                     } overflow-hidden`}>
@@ -106,7 +106,7 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
                                     />
                                 </div>
                             </div>
-                            <span className={`text-[10px] truncate w-14 text-center ${isDark ? 'text-gray-300' : 'text-gray-700'
+                            <span className={`text-xs truncate w-20 text-center font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'
                                 }`}>
                                 {storyUser.user.username}
                             </span>

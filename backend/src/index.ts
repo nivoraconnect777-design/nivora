@@ -16,7 +16,8 @@ import followRoutes from './routes/followRoutes';
 import searchRoutes from './routes/searchRoutes';
 import postRoutes from './routes/postRoutes';
 import healthRoutes from './routes/healthRoutes';
-import messageRoutes from './routes/messageRoutes';
+import streamRoutes from './routes/streamRoutes';
+
 import reelsRoutes from './routes/reelsRoutes';
 import storyRoutes from './routes/storyRoutes';
 import { createServer } from 'http';
@@ -96,8 +97,11 @@ app.use('/api/search', searchRoutes);
 // Post routes
 app.use('/api/posts', postRoutes);
 
+// Stream routes
+app.use('/api/stream', streamRoutes);
+
 // Message routes
-app.use('/api/messages', messageRoutes);
+
 
 // Reels routes
 app.use('/api/reels', reelsRoutes);

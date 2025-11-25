@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
 import toast from 'react-hot-toast';
 import StoryTray from '../stories/StoryTray';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Navbar() {
   const location = useLocation();
@@ -29,12 +30,12 @@ export default function Navbar() {
             }`}
         >
           <div className="px-6">
-            <div className="flex items-center justify-between h-16">
+            <div className="flex items-center justify-between h-24">
               {/* Expandable Search */}
               <ExpandableSearch isDark={isDark} />
 
               {/* Story Tray */}
-              <div className="flex-1 flex justify-center mx-4 overflow-hidden">
+              <div className="flex-1 flex items-center justify-start mx-8 overflow-hidden h-full">
                 <StoryTray isDark={isDark} />
               </div>
 
@@ -90,7 +91,7 @@ export default function Navbar() {
       )}
 
       {/* Spacer for fixed navbar */}
-      {isAuthenticated && <div className="h-16 hidden md:block" />}
+      {isAuthenticated && <div className="h-24 hidden md:block" />}
     </>
   );
 }
@@ -124,8 +125,6 @@ function MobileNavLink({ to, icon: Icon, active, isDark }: MobileNavLinkProps) {
 
 
 // Expandable Search Component
-import { useState, useRef, useEffect } from 'react';
-
 function ExpandableSearch({ isDark }: { isDark: boolean }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [query, setQuery] = useState('');
