@@ -12,7 +12,6 @@ import {
     Window,
     useChatContext,
 } from 'stream-chat-react';
-import 'stream-chat-react/dist/css/index.css';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
 import api from '../lib/api';
