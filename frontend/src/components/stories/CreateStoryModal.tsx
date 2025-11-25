@@ -258,192 +258,397 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black z-[100]"
+                transition={{ duration: 0.3 }}
+                className="fixed inset-0 bg-black z-[100] flex items-center justify-center"
+                style={{ margin: 0, padding: 0 }}
             >
-                <canvas ref={canvasRef} className="hidden" />
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="w-full h-full relative"
+                >
+                    <canvas ref={canvasRef} className="hidden" />
 
-                {/* Header */}
-                <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
-                    <button
-                        onClick={handleClose}
-                        className="p-2 rounded-full bg-black/40 text-white hover:bg-black/60"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
-                    <h3 className="text-white font-semibold text-lg">Create Story</h3>
-                    <div className="w-10" />
-                </div>
-
-                {/* Main Content */}
-                {!previewUrl ? (
-                    <div className="flex items-center justify-center h-full">
-                        <div
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex flex-col items-center justify-center cursor-pointer"
+                    {/* Header */}
+                    <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
+                        <button
+                            onClick={handleClose}
+                            className="p-2 rounded-full bg-black/40 text-white hover:bg-black/60"
                         >
-                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4">
-                                <Type className="w-12 h-12 text-white" />
-                            </div>
-                            <p className="text-white text-lg font-medium">Add Photo or Video</p>
-                            <p className="text-gray-400 text-sm mt-2">Max 10MB</p>
-                        </div>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*,video/*"
-                            onChange={handleFileSelect}
-                            className="hidden"
-                        />
+                            <X className="w-6 h-6" />
+                        </button>
+                        <h3 className="text-white font-semibold text-lg">Create Story</h3>
+                        <div className="w-10" />
                     </div>
-                ) : (
-                    <div
-                        className="relative w-full h-full flex items-center justify-center overflow-hidden"
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                        onMouseLeave={handleMouseUp}
-                        onTouchStart={handleTouchStart}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleMouseUp}
-                    >
-                        {/* Image/Video Preview */}
-                        <div
-                            ref={imageRef}
-                            style={{
-                                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-                                cursor: isDragging ? 'grabbing' : 'grab'
-                            }}
-                            className="transition-transform"
-                        >
-                            {mediaType === 'video' ? (
-                                <video
-                                    src={previewUrl}
-                                    className="max-h-screen max-w-full"
-                                    controls
-                                />
-                            ) : (
-                                <img
-                                    src={previewUrl}
-                                    alt="Preview"
-                                    className="max-h-screen max-w-full select-none"
-                                    draggable={false}
-                                />
-                            )}
-                        </div>
 
-                        {/* Text Overlays */}
-                        {textOverlays.map(overlay => (
+                    {/* Main Content */}
+                    {!previewUrl ? (
+                        <div className="flex items-center justify-center h-full">
                             <div
-                                key={overlay.id}
-                                draggable
-                                onDragStart={(e) => {
-                                    e.dataTransfer.effectAllowed = 'move';
-                                    setActiveTextId(overlay.id);
-                                }}
-                                onDrag={(e) => handleTextDrag(overlay.id, e)}
-                                onClick={() => setActiveTextId(overlay.id)}
-                                style={{
-                                    position: 'absolute',
-                                    left: overlay.x,
-                                    top: overlay.y,
-                                    fontSize: overlay.fontSize,
-                                    color: overlay.color,
-                                    cursor: 'move',
-                                    userSelect: 'none',
-                                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                                    border: activeTextId === overlay.id ? '2px dashed white' : 'none',
-                                    padding: '4px 8px'
-                                }}
-                                className="font-bold"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex flex-col items-center justify-center cursor-pointer"
                             >
-                                {overlay.text}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Bottom Controls */}
-                {previewUrl && (
-                    <div className="absolute bottom-0 left-0 right-0 z-10 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                        <div className="flex items-center justify-between mb-4">
-                            {/* Zoom Controls */}
-                            {mediaType === 'image' && (
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={handleZoomOut}
-                                        className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
-                                    >
-                                        <ZoomOut className="w-5 h-5" />
-                                    </button>
-                                    <span className="text-white text-sm font-medium">{Math.round(scale * 100)}%</span>
-                                    <button
-                                        onClick={handleZoomIn}
-                                        className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
-                                    >
-                                        <ZoomIn className="w-5 h-5" />
-                                    </button>
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4">
+                                    <Type className="w-12 h-12 text-white" />
                                 </div>
-                            )}
-
-                            {/* Text Button */}
-                            <button
-                                onClick={() => setIsAddingText(true)}
-                                className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
-                            >
-                                <Type className="w-5 h-5" />
-                            </button>
-
-                            {/* Share Button */}
-                            <button
-                                onClick={handleSubmit}
-                                disabled={isUploading}
-                                className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-semibold hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 flex items-center gap-2"
-                            >
-                                {isUploading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Sharing...
-                                    </>
-                                ) : (
-                                    'Share'
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Add Text Modal */}
-                {isAddingText && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50">
-                        <div className="bg-gray-900 rounded-2xl p-6 w-80">
-                            <h4 className="text-white font-semibold mb-4">Add Text</h4>
+                                <p className="text-white text-lg font-medium">Add Photo or Video</p>
+                                <p className="text-gray-400 text-sm mt-2">Max 10MB</p>
+                            </div>
                             <input
-                                type="text"
-                                value={newText}
-                                onChange={(e) => setNewText(e.target.value)}
-                                placeholder="Type something..."
-                                className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 outline-none mb-4"
-                                autoFocus
-                                onKeyPress={(e) => e.key === 'Enter' && handleAddText()}
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*,video/*"
+                                onChange={handleFileSelect}
+                                className="hidden"
                             />
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setIsAddingText(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
+                        </div>
+                    ) : (
+                        <div
+                            className="relative w-full h-full flex items-center justify-center overflow-hidden"
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleMouseUp}
+                        >
+                            {/* Image/Video Preview */}
+                            <div
+                                ref={imageRef}
+                                style={{
+                                    transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                                    cursor: isDragging ? 'grabbing' : 'grab'
+                                }}
+                                className="transition-transform"
+                            >
+                                {mediaType === 'video' ? (
+                                    <video
+                                        src={previewUrl}
+                                        className="max-h-screen max-w-full"
+                                        controls
+                                    />
+                                ) : (
+                                    <img
+                                        src={previewUrl}
+                                        alt="Preview"
+                                        className="max-h-screen max-w-full select-none"
+                                        draggable={false}
+                                    />
+                                )}
+                            </div>
+
+                            {/* Text Overlays */}
+                            {textOverlays.map(overlay => (
+                                <div
+                                    key={overlay.id}
+                                    draggable
+                                    onDragStart={(e) => {
+                                        e.dataTransfer.effectAllowed = 'move';
+                                        setActiveTextId(overlay.id);
+                                    }}
+                                    onDrag={(e) => handleTextDrag(overlay.id, e)}
+                                    onClick={() => setActiveTextId(overlay.id)}
+                                    style={{
+                                        position: 'absolute',
+                                        left: overlay.x,
+                                        top: overlay.y,
+                                        fontSize: overlay.fontSize,
+                                        color: overlay.color,
+                                        cursor: 'move',
+                                        userSelect: 'none',
+                                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                                        border: activeTextId === overlay.id ? '2px dashed white' : 'none',
+                                        padding: '4px 8px'
+                                    }}
+                                    className="font-bold"
                                 >
-                                    Cancel
+                                    {overlay.text}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Bottom Controls */}
+                    {previewUrl && (
+                        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                            <div className="flex items-center justify-between mb-4">
+                                {/* Zoom Controls */}
+                                {mediaType === 'image' && (
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={handleZoomOut}
+                                            className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
+                                        >
+                                            <ZoomOut className="w-5 h-5" />
+                                        </button>
+                                        <span className="text-white text-sm font-medium">{Math.round(scale * 100)}%</span>
+                                        <button
+                                            onClick={handleZoomIn}
+                                            className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
+                                        >
+                                            <ZoomIn className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Text Button */}
+                                <button
+                                    onClick={() => setIsAddingText(true)}
+                                    className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
+                                >
+                                    <Type className="w-5 h-5" />
                                 </button>
+
+                                {/* Share Button */}
                                 <button
-                                    onClick={handleAddText}
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    onClick={handleSubmit}
+                                    disabled={isUploading}
+                                    className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-semibold hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 flex items-center gap-2"
                                 >
-                                    Add
+                                    {isUploading ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Sharing...
+                                        </>
+                                    ) : (
+                                        'Share'
+                                    )}
                                 </button>
                             </div>
                         </div>
-                    </div>
-                )}
-            </motion.div>
-        </AnimatePresence>
-    );
+                    )}
+
+                    {/* Add Text Modal */}
+                    {isAddingText && (
+                        <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50">
+                            <div className="bg-gray-900 rounded-2xl p-6 w-80">
+                                <h4 className="text-white font-semibold mb-4">Add Text</h4>
+                                <input
+                                    type="text"
+                                    value={newText}
+                                    onChange={(e) => setNewText(e.target.value)}
+                                    placeholder="Type something..."
+                                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 outline-none mb-4"
+                                    autoFocus
+                                    onKeyPress={(e) => e.key === 'Enter' && handleAddText()}
+                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setIsAddingText(false)}
+                                        className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleAddText}
+                                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    >
+
+                                        return (
+                                        <AnimatePresence>
+                                            <motion.div
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="fixed inset-0 bg-black z-[100] flex items-center justify-center"
+                                                style={{ margin: 0, padding: 0 }}
+                                            >
+                                                <motion.div
+                                                    initial={{ scale: 0.8, opacity: 0 }}
+                                                    animate={{ scale: 1, opacity: 1 }}
+                                                    exit={{ scale: 0.8, opacity: 0 }}
+                                                    transition={{ duration: 0.3, ease: "easeOut" }}
+                                                    className="w-full h-full relative"
+                                                >
+                                                    <canvas ref={canvasRef} className="hidden" />
+
+                                                    {/* Header */}
+                                                    <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
+                                                        <button
+                                                            onClick={handleClose}
+                                                            className="p-2 rounded-full bg-black/40 text-white hover:bg-black/60"
+                                                        >
+                                                            <X className="w-6 h-6" />
+                                                        </button>
+                                                        <h3 className="text-white font-semibold text-lg">Create Story</h3>
+                                                        <div className="w-10" />
+                                                    </div>
+
+                                                    {/* Main Content */}
+                                                    {!previewUrl ? (
+                                                        <div className="flex items-center justify-center h-full">
+                                                            <div
+                                                                onClick={() => fileInputRef.current?.click()}
+                                                                className="flex flex-col items-center justify-center cursor-pointer"
+                                                            >
+                                                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4">
+                                                                    <Type className="w-12 h-12 text-white" />
+                                                                </div>
+                                                                <p className="text-white text-lg font-medium">Add Photo or Video</p>
+                                                                <p className="text-gray-400 text-sm mt-2">Max 10MB</p>
+                                                            </div>
+                                                            <input
+                                                                ref={fileInputRef}
+                                                                type="file"
+                                                                accept="image/*,video/*"
+                                                                onChange={handleFileSelect}
+                                                                className="hidden"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div
+                                                            className="relative w-full h-full flex items-center justify-center overflow-hidden"
+                                                            onMouseDown={handleMouseDown}
+                                                            onMouseMove={handleMouseMove}
+                                                            onMouseUp={handleMouseUp}
+                                                            onMouseLeave={handleMouseUp}
+                                                            onTouchStart={handleTouchStart}
+                                                            onTouchMove={handleTouchMove}
+                                                            onTouchEnd={handleMouseUp}
+                                                        >
+                                                            {/* Image/Video Preview */}
+                                                            <div
+                                                                ref={imageRef}
+                                                                style={{
+                                                                    transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                                                                    cursor: isDragging ? 'grabbing' : 'grab'
+                                                                }}
+                                                                className="transition-transform"
+                                                            >
+                                                                {mediaType === 'video' ? (
+                                                                    <video
+                                                                        src={previewUrl}
+                                                                        className="max-h-screen max-w-full"
+                                                                        controls
+                                                                    />
+                                                                ) : (
+                                                                    <img
+                                                                        src={previewUrl}
+                                                                        alt="Preview"
+                                                                        className="max-h-screen max-w-full select-none"
+                                                                        draggable={false}
+                                                                    />
+                                                                )}
+                                                            </div>
+
+                                                            {/* Text Overlays */}
+                                                            {textOverlays.map(overlay => (
+                                                                <div
+                                                                    key={overlay.id}
+                                                                    draggable
+                                                                    onDragStart={(e) => {
+                                                                        e.dataTransfer.effectAllowed = 'move';
+                                                                        setActiveTextId(overlay.id);
+                                                                    }}
+                                                                    onDrag={(e) => handleTextDrag(overlay.id, e)}
+                                                                    onClick={() => setActiveTextId(overlay.id)}
+                                                                    style={{
+                                                                        position: 'absolute',
+                                                                        left: overlay.x,
+                                                                        top: overlay.y,
+                                                                        fontSize: overlay.fontSize,
+                                                                        color: overlay.color,
+                                                                        cursor: 'move',
+                                                                        userSelect: 'none',
+                                                                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                                                                        border: activeTextId === overlay.id ? '2px dashed white' : 'none',
+                                                                        padding: '4px 8px'
+                                                                    }}
+                                                                    className="font-bold"
+                                                                >
+                                                                    {overlay.text}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Bottom Controls */}
+                                                    {previewUrl && (
+                                                        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                {/* Zoom Controls */}
+                                                                {mediaType === 'image' && (
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={handleZoomOut}
+                                                                            className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
+                                                                        >
+                                                                            <ZoomOut className="w-5 h-5" />
+                                                                        </button>
+                                                                        <span className="text-white text-sm font-medium">{Math.round(scale * 100)}%</span>
+                                                                        <button
+                                                                            onClick={handleZoomIn}
+                                                                            className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
+                                                                        >
+                                                                            <ZoomIn className="w-5 h-5" />
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Text Button */}
+                                                                <button
+                                                                    onClick={() => setIsAddingText(true)}
+                                                                    className="p-3 rounded-full bg-black/40 text-white hover:bg-black/60"
+                                                                >
+                                                                    <Type className="w-5 h-5" />
+                                                                </button>
+
+                                                                {/* Share Button */}
+                                                                <button
+                                                                    onClick={handleSubmit}
+                                                                    disabled={isUploading}
+                                                                    className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-semibold hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 flex items-center gap-2"
+                                                                >
+                                                                    {isUploading ? (
+                                                                        <>
+                                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                                            Sharing...
+                                                                        </>
+                                                                    ) : (
+                                                                        'Share'
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Add Text Modal */}
+                                                    {isAddingText && (
+                                                        <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50">
+                                                            <div className="bg-gray-900 rounded-2xl p-6 w-80">
+                                                                <h4 className="text-white font-semibold mb-4">Add Text</h4>
+                                                                <input
+                                                                    type="text"
+                                                                    value={newText}
+                                                                    onChange={(e) => setNewText(e.target.value)}
+                                                                    placeholder="Type something..."
+                                                                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 outline-none mb-4"
+                                                                    autoFocus
+                                                                    onKeyPress={(e) => e.key === 'Enter' && handleAddText()}
+                                                                />
+                                                                <div className="flex gap-2">
+                                                                    <button
+                                                                        onClick={() => setIsAddingText(false)}
+                                                                        className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={handleAddText}
+                                                                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                                                    >
+                                                                        Add
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            </motion.div>
+                                        </AnimatePresence>
+                                        );
 }
