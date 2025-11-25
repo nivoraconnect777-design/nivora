@@ -12,7 +12,10 @@ import mediaRoutes from '../backend/src/routes/mediaRoutes';
 import exploreRoutes from '../backend/src/routes/exploreRoutes';
 import reelsRoutes from '../backend/src/routes/reelsRoutes';
 import postRoutes from '../backend/src/routes/postRoutes';
-import messageRoutes from '../backend/src/routes/messageRoutes';
+import streamRoutes from '../backend/src/routes/streamRoutes';
+import notificationRoutes from '../backend/src/routes/notificationRoutes';
+import storyRoutes from '../backend/src/routes/storyRoutes';
+import healthRoutes from '../backend/src/routes/healthRoutes';
 
 // Import middleware
 import { errorHandler } from '../backend/src/middleware/errorHandler';
@@ -38,16 +41,18 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // Routes
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/users', followRoutes); // Changed from /api/follow to match frontend
+app.use('/api/users', followRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/explore', exploreRoutes);
 app.use('/api/reels', reelsRoutes);
 app.use('/api/posts', postRoutes);
-app.use('/api/messages', messageRoutes);
+app.use('/api/stream', streamRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/stories', storyRoutes);
+app.use('/api', healthRoutes);
 
 // Error handling
 app.use(notFoundHandler);
