@@ -27,7 +27,7 @@ class AuthService {
   private generateToken(userId: string, expiresIn: string): string {
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error('JWT_SECRET is not defined');
-    return jwt.sign({ userId }, secret, { expiresIn });
+    return jwt.sign({ userId }, secret, { expiresIn } as jwt.SignOptions);
   }
 
   private generateRefreshToken(userId: string): string {
@@ -35,7 +35,7 @@ class AuthService {
     if (!secret) throw new Error('JWT_REFRESH_SECRET is not defined');
     return jwt.sign({ userId }, secret, {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-    });
+    } as jwt.SignOptions);
   }
 
   private generateVerificationToken(): string {
