@@ -141,30 +141,61 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
         ));
     };
 
+
     const uploadToCloudinary = async (file: File): Promise<string> => {
-        const signatureResponse = await api.post('/api/media/upload-signature', {
-            folder: 'stories',
-        });
+        try {
+            console.log('Getting upload signature for folder: stories');
+            const signatureResponse = await api.post('/api/media/upload-signature', {
+                folder: 'stories',
+            });
 
-        const { signature, timestamp, cloudName, apiKey, folder } = signatureResponse.data.data;
+            console.log('Signature response:', signatureResponse.data);
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('signature', signature);
-        formData.append('timestamp', timestamp.toString());
-        formData.append('api_key', apiKey);
-        formData.append('folder', folder);
+            const { signature, timestamp, cloudName, apiKey, folder } = signatureResponse.data.data;
 
-        const uploadResponse = await fetch(
-            `https://api.cloudinary.com/v1_1/${cloudName}/${mediaType === 'video' ? 'video' : 'image'}/upload`,
-            {
-                method: 'POST',
-                body: formData,
+            if (!signature || !timestamp || !cloudName || !apiKey) {
+                throw new Error('Invalid signature response from server');
             }
-        );
 
-        const data = await uploadResponse.json();
-        return data.secure_url;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('signature', signature);
+            formData.append('timestamp', timestamp.toString());
+            formData.append('api_key', apiKey);
+            formData.append('folder', folder);
+
+            console.log('Uploading to Cloudinary:', cloudName, mediaType);
+
+            const uploadResponse = await fetch(
+                `https://api.cloudinary.com/v1_1/${cloudName}/${mediaType === 'video' ? 'video' : 'image'}/upload`,
+                {
+                    method: 'POST',
+                    body: formData,
+                }
+            );
+
+            if (!uploadResponse.ok) {
+                const errorText = await uploadResponse.text();
+                console.error('Cloudinary upload failed:', uploadResponse.status, errorText);
+                throw new Error(`Cloudinary upload failed: ${uploadResponse.status} - ${errorText}`);
+            }
+
+            const data = await uploadResponse.json();
+            console.log('Cloudinary upload successful:', data.secure_url);
+
+            if (!data.secure_url) {
+                throw new Error('No secure_url in Cloudinary response');
+            }
+
+            return data.secure_url;
+        } catch (error: any) {
+            console.error('Upload to Cloudinary error:', error);
+            if (error.response?.status === 401) {
+                toast.error('Authentication failed. Please log in again.');
+                throw new Error('Authentication required');
+            }
+            throw error;
+        }
     };
 
     const renderToCanvas = async (): Promise<Blob> => {
@@ -208,34 +239,58 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
     };
 
     const handleSubmit = async () => {
-        if (!file) return;
+        if (!file) {
+            toast.error('Please select a file first');
+            return;
+        }
 
         setIsUploading(true);
         try {
+            console.log('Starting story upload process...');
             let mediaUrl: string;
 
             if (mediaType === 'image' && (textOverlays.length > 0 || scale !== 1 || position.x !== 0 || position.y !== 0)) {
+                console.log('Rendering edited image to canvas...');
                 // Render edited image to canvas and upload
                 const blob = await renderToCanvas();
                 const editedFile = new File([blob], 'story.jpg', { type: 'image/jpeg' });
                 mediaUrl = await uploadToCloudinary(editedFile);
             } else {
+                console.log('Uploading original file...');
                 // Upload original file
                 mediaUrl = await uploadToCloudinary(file);
             }
 
-            await api.post('/api/stories', {
+            if (!mediaUrl) {
+                throw new Error('Failed to get media URL from Cloudinary');
+            }
+
+            console.log('Creating story with mediaUrl:', mediaUrl);
+
+            const response = await api.post('/api/stories', {
                 mediaUrl,
                 mediaType,
                 duration: mediaType === 'video' ? 15000 : 5000,
             });
 
+            console.log('Story created successfully:', response.data);
+
             toast.success('Story added!');
             queryClient.invalidateQueries({ queryKey: ['stories'] });
             handleClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Upload story error:', error);
-            toast.error('Failed to upload story');
+
+            if (error.response?.status === 401) {
+                toast.error('Authentication failed. Please log in again.');
+            } else if (error.response?.status === 400) {
+                const errorMsg = error.response?.data?.message || 'Invalid request';
+                toast.error(`Upload failed: ${errorMsg}`);
+            } else if (error.message?.includes('Authentication required')) {
+                // Already shown toast in uploadToCloudinary
+            } else {
+                toast.error(error.message || 'Failed to upload story');
+            }
         } finally {
             setIsUploading(false);
         }
