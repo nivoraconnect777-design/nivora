@@ -38,10 +38,8 @@ export const generateToken = async (req: Request, res: Response, next: NextFunct
             apiKey: process.env.STREAM_API_KEY,
             user: {
                 id: userId,
-                // @ts-ignore
-                name: req.user.username,
-                // @ts-ignore
-                image: req.user.profilePicture,
+                name: (req.user as any)?.username,
+                image: (req.user as any)?.profilePicUrl,
             }
         });
     } catch (error: any) {

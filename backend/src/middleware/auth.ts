@@ -11,6 +11,7 @@ declare global {
         id: string;
         username: string;
         email: string;
+        profilePicUrl: string | null;
       };
       cookies?: any; // Add cookies property
     }
@@ -49,6 +50,7 @@ export const authenticate = async (
             id: true,
             username: true,
             email: true,
+            profilePicUrl: true,
           },
         });
         break; // Success

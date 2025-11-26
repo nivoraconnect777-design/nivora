@@ -23,7 +23,7 @@ export const getUserProfile = async (req: Request, res: Response, next: NextFunc
 
 export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     const { username, displayName, bio, profilePicUrl } = req.body;
 
     if (!userId) {
@@ -50,7 +50,7 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
 export const checkUsername = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { username } = req.params;
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
 
     if (!username) {
       throw createError('Username is required', 400, 'VALIDATION_FAILED');

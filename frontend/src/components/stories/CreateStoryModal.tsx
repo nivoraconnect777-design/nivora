@@ -135,7 +135,7 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
     const handleTextResize = (id: string, delta: number) => {
         setTextOverlays(prev => prev.map(overlay =>
             overlay.id === id
-                ? { ...overlay, fontSize: Math.max(16, Math.min(64, overlay.id + delta)) }
+                ? { ...overlay, fontSize: Math.max(16, Math.min(64, overlay.fontSize + delta)) }
                 : overlay
         ));
     };

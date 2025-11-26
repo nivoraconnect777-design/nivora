@@ -4,7 +4,7 @@ import { createError } from '../middleware/errorHandler';
 
 export const followUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const followerId = (req as any).user?.userId;
+    const followerId = (req as any).user?.id;
     const { id: followingId } = req.params;
 
     if (!followerId) {
@@ -29,7 +29,7 @@ export const followUser = async (req: Request, res: Response, next: NextFunction
 
 export const unfollowUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const followerId = (req as any).user?.userId;
+    const followerId = (req as any).user?.id;
     const { id: followingId } = req.params;
 
     if (!followerId) {
@@ -96,7 +96,7 @@ export const getFollowing = async (req: Request, res: Response, next: NextFuncti
 
 export const checkFollowStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const followerId = (req as any).user?.userId;
+    const followerId = (req as any).user?.id;
     const { id: followingId } = req.params;
 
     if (!followerId) {
