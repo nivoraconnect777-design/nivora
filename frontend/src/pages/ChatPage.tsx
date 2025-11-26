@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { StreamChat, Channel as StreamChannel } from 'stream-chat';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
-import { ArrowLeft, Send, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../lib/api';
 
@@ -136,6 +136,27 @@ export default function ChatPage() {
         return members.find((m: any) => m.user?.id !== user?.id)?.user;
     };
 
+    const formatTime = (date: Date) => {
+        const messageDate = new Date(date);
+        const now = new Date();
+        const diffInHours = (now.getTime() - messageDate.getTime()) / (1000 * 60 * 60);
+
+        if (diffInHours < 24) {
+            return messageDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        } else {
+            return messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+    };
+
+    const handleVideoCall = async () => {
+        if (!activeChannel) return;
+        const callId = `${activeChannel.id}-${Date.now()}`;
+        const callUrl = `${window.location.origin}/call/${callId}`;
+        await activeChannel.sendMessage({
+            text: `I've started a video call. Join me here: ${callUrl}`,
+        });
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen">
@@ -222,9 +243,16 @@ export default function ChatPage() {
                                             </div>
                                         )}
                                     </div>
-                                    <h3 className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                    <h3 className={`font-semibold text-lg flex-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                         {otherUser?.name || 'Unknown User'}
                                     </h3>
+                                    <button
+                                        onClick={handleVideoCall}
+                                        className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                                        title="Start Video Call"
+                                    >
+                                        <Video className="w-6 h-6" />
+                                    </button>
                                 </>
                             );
                         })()}
@@ -235,15 +263,18 @@ export default function ChatPage() {
                         {messages.map((message) => {
                             const isOwn = message.user?.id === user?.id;
                             return (
-                                <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                                <div key={message.id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                                     <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl ${isOwn
-                                            ? 'bg-blue-500 text-white'
-                                            : isDark
-                                                ? 'bg-gray-800 text-white'
-                                                : 'bg-white text-gray-900'
+                                        ? 'bg-blue-500 text-white'
+                                        : isDark
+                                            ? 'bg-gray-800 text-white'
+                                            : 'bg-white text-gray-900'
                                         }`}>
                                         <p className="break-words">{message.text}</p>
                                     </div>
+                                    <span className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                        {formatTime(message.created_at)}
+                                    </span>
                                 </div>
                             );
                         })}
@@ -258,8 +289,8 @@ export default function ChatPage() {
                                 onChange={(e) => setMessageText(e.target.value)}
                                 placeholder="Type a message..."
                                 className={`flex-1 px-4 py-2 rounded-full border ${isDark
-                                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                                        : 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500'
+                                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                                    : 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500'
                                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                             />
                             <motion.button
