@@ -28,9 +28,10 @@ interface StoryViewerProps {
     initialUserIndex: number;
     storyUsers: StoryUser[];
     onClose: () => void;
+    isDark: boolean;
 }
 
-export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: StoryViewerProps) {
+export default function StoryViewer({ initialUserIndex, storyUsers, onClose, isDark }: StoryViewerProps) {
     const { user: currentUser } = useAuthStore();
     const [currentUserIndex, setCurrentUserIndex] = useState(initialUserIndex);
     const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
@@ -66,14 +67,14 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
                 newSet.add(currentStory.id);
                 setLocalViewedStories(newSet);
                 localStorage.setItem('viewedStories', JSON.stringify(Array.from(newSet)));
-                
+
                 // Trigger a custom event so StoryTray can update
                 window.dispatchEvent(new Event('storyViewed'));
             }
 
             // Backend tracking (will fail until DB is fixed, so we catch silently)
             if (!currentStory.isViewed && currentUserData.user.id !== currentUser?.id) {
-                api.post(`/api/stories/${currentStory.id}/view`).catch(() => {});
+                api.post(`/api/stories/${currentStory.id}/view`).catch(() => { });
             }
         }
     }, [currentStory, currentUserData.user.id, currentUser?.id]);
@@ -144,7 +145,7 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
         try {
             await api.delete(`/api/stories/${currentStory.id}`);
             toast.success('Story deleted');
-            
+
             // If it was the only story, close viewer
             if (currentUserData.stories.length === 1) {
                 onClose();
@@ -211,7 +212,7 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
                 {/* Options Menu (Owner Only) */}
                 {currentUserData.user.id === currentUser?.id && (
                     <div className="absolute top-8 right-16 z-30">
-                        <button 
+                        <button
                             onClick={() => {
                                 setIsPaused(true);
                                 setShowOptions(!showOptions);
@@ -220,7 +221,7 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
                         >
                             <MoreHorizontal className="w-6 h-6" />
                         </button>
-                        
+
                         {showOptions && (
                             <div className="absolute right-0 mt-2 w-32 bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
                                 <button
@@ -302,12 +303,16 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
                             initial={{ y: '100%' }}
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
-                            className="absolute inset-0 z-30 bg-gray-900 rounded-t-2xl mt-20"
+                            className={`absolute inset-0 z-30 rounded-t-2xl mt-20 ${isDark ? 'bg-gray-900' : 'bg-white'
+                                }`}
                         >
-                            <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-                                <h3 className="text-white font-bold">Viewers</h3>
+                            <div className={`p-4 border-b flex justify-between items-center ${isDark ? 'border-gray-800' : 'border-gray-200'
+                                }`}>
+                                <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'
+                                    }`}>Viewers</h3>
                                 <button onClick={() => setShowViewers(false)}>
-                                    <X className="w-6 h-6 text-white" />
+                                    <X className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'
+                                        }`} />
                                 </button>
                             </div>
                             <div className="p-4 overflow-y-auto h-full pb-20">
@@ -319,13 +324,16 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
                                             className="w-10 h-10 rounded-full"
                                         />
                                         <div className="flex-1">
-                                            <p className="text-white font-medium">{view.user.username}</p>
-                                            <p className="text-gray-400 text-xs">{view.user.displayName}</p>
+                                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'
+                                                }`}>{view.user.username}</p>
+                                            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                                }`}>{view.user.displayName}</p>
                                         </div>
                                     </div>
                                 ))}
                                 {viewers.length === 0 && (
-                                    <p className="text-gray-500 text-center mt-10">No views yet</p>
+                                    <p className={`text-center mt-10 ${isDark ? 'text-gray-500' : 'text-gray-400'
+                                        }`}>No views yet</p>
                                 )}
                             </div>
                         </motion.div>

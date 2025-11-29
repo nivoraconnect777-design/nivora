@@ -100,10 +100,10 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
                         profilePicUrl: true,
                     },
                 },
-                // views: {
-                //     where: { viewerId: userId },
-                //     select: { id: true }, // Check if current user viewed
-                // },
+                views: {
+                    where: { viewerId: userId },
+                    select: { id: true }, // Check if current user viewed
+                },
             },
             orderBy: { createdAt: 'asc' },
         });
@@ -122,8 +122,7 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
                 };
             }
 
-            // const isViewed = story.views.length > 0;
-            const isViewed = false; // Temporarily disabled due to missing table
+            const isViewed = story.views.length > 0;
 
             storiesByUser[story.userId].stories.push({
                 ...story,
@@ -172,27 +171,22 @@ export const markStoryViewed = async (req: Request, res: Response) => {
         const { id } = req.params;
 
         // Check if already viewed
-        try {
-            const existingView = await prisma.storyView.findUnique({
-                where: {
-                    storyId_viewerId: {
-                        storyId: id,
-                        viewerId: userId,
-                    },
+        const existingView = await prisma.storyView.findUnique({
+            where: {
+                storyId_viewerId: {
+                    storyId: id,
+                    viewerId: userId,
+                },
+            },
+        });
+
+        if (!existingView) {
+            await prisma.storyView.create({
+                data: {
+                    storyId: id,
+                    viewerId: userId,
                 },
             });
-
-            if (!existingView) {
-                await prisma.storyView.create({
-                    data: {
-                        storyId: id,
-                        viewerId: userId,
-                    },
-                });
-            }
-        } catch (dbError: any) {
-            console.warn('StoryView table likely missing, skipping view tracking:', dbError.message);
-            // Silently succeed
         }
 
         res.json({
@@ -233,27 +227,20 @@ export const getStoryViewers = async (req: Request, res: Response) => {
             });
         }
 
-        let viewers: any[] = [];
-        try {
-            viewers = await prisma.storyView.findMany({
-                where: { storyId: id },
-                include: {
-                    viewer: {
-                        select: {
-                            id: true,
-                            username: true,
-                            profilePicUrl: true,
-                            displayName: true,
-                        },
+        const viewers = await prisma.storyView.findMany({
+            where: { storyId: id },
+            include: {
+                viewer: {
+                    select: {
+                        id: true,
+                        username: true,
+                        profilePicUrl: true,
+                        displayName: true,
                     },
                 },
-                orderBy: { viewedAt: 'desc' },
-            });
-        } catch (dbError: any) {
-            console.warn('StoryView table likely missing, returning empty viewers list:', dbError.message);
-            // Return empty list
-            viewers = [];
-        }
+            },
+            orderBy: { viewedAt: 'desc' },
+        });
 
         res.json({
             status: 'success',
