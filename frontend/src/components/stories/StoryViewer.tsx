@@ -177,7 +177,7 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose, isD
             </button>
 
             {/* Main Content */}
-            <div className="relative w-full h-full md:max-w-[400px] md:h-[85vh] md:rounded-2xl overflow-hidden bg-gray-900 shadow-2xl">
+            <div className="relative w-full h-full md:max-w-[360px] md:h-[85vh] md:rounded-2xl overflow-hidden bg-gray-900 shadow-2xl">
 
                 {/* Progress Bars */}
                 <div className="absolute top-4 left-2 right-2 z-20 flex gap-1">
