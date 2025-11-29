@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { StreamChat, Channel as StreamChannel } from 'stream-chat';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
 import { ArrowLeft, Send, Loader2, Video } from 'lucide-react';
@@ -32,6 +33,7 @@ export default function ChatPage() {
     const location = useLocation();
     const navigate = useNavigate();
     const targetUserId = location.state?.targetUserId;
+    const videoClient = useStreamVideoClient();
 
     // Initialize Stream Chat
     useEffect(() => {
@@ -149,12 +151,28 @@ export default function ChatPage() {
     };
 
     const handleVideoCall = async () => {
-        if (!activeChannel) return;
-        const callId = `${activeChannel.id}-${Date.now()}`;
-        const callUrl = `${window.location.origin}/call/${callId}`;
-        await activeChannel.sendMessage({
-            text: `I've started a video call. Join me here: ${callUrl}`,
-        });
+        if (!activeChannel || !videoClient || !user) return;
+
+        const otherUser = getOtherMember(activeChannel);
+        if (!otherUser) return;
+
+        const callId = `${user.id}-${otherUser.id}-${Date.now()}`;
+        const call = videoClient.call('default', callId);
+
+        try {
+            await call.getOrCreate({
+                ring: true,
+                data: {
+                    members: [
+                        { user_id: user.id },
+                        { user_id: otherUser.id },
+                    ],
+                },
+            });
+            navigate(`/call/${callId}`);
+        } catch (error) {
+            console.error('Failed to start call', error);
+        }
     };
 
     if (loading) {

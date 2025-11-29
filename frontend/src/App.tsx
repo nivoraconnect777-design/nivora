@@ -30,61 +30,50 @@ const queryClient = new QueryClient({
   },
 });
 
+import StreamVideoProvider from './providers/StreamVideoProvider';
+import CallPage from './pages/CallPage';
+
+// ... imports
+
 function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <Toaster
-          position="top-center"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-              borderRadius: '12px',
-              padding: '16px',
-            },
-            success: {
-              iconTheme: {
-                primary: '#10b981',
-                secondary: '#fff',
-              },
-            },
-            error: {
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
-              },
-            },
-          }}
+        // ... toast options
         />
         <Router>
-          <Routes>
-            {/* Public landing page */}
-            <Route path="/" element={<LandingPage />} />
+          <StreamVideoProvider>
+            <Routes>
+              {/* Public landing page */}
+              <Route path="/" element={<LandingPage />} />
 
-            {/* Auth routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
-            <Route path="/verify-email-handler" element={<EmailVerificationHandler />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+              {/* Auth routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/verify-email-handler" element={<EmailVerificationHandler />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-            {/* Protected routes wrapped in AppLayout */}
-            <Route element={<AppLayout />}>
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/explore" element={<ExplorePage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/messages" element={<ChatPage />} />
-              <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
-              <Route path="/profile/:username" element={<ProfilePage />} />
-              <Route path="/post/:id" element={<PostPage />} />
-              <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
-            </Route>
-          </Routes>
+              {/* Protected routes wrapped in AppLayout */}
+              <Route element={<AppLayout />}>
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/explore" element={<ExplorePage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/messages" element={<ChatPage />} />
+                <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
+                <Route path="/profile/:username" element={<ProfilePage />} />
+                <Route path="/post/:id" element={<PostPage />} />
+                <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+              </Route>
+
+              {/* Video Call Route - Outside AppLayout for full screen */}
+              <Route path="/call/:id" element={<CallPage />} />
+            </Routes>
+          </StreamVideoProvider>
         </Router>
       </QueryClientProvider>
     </ErrorBoundary>
