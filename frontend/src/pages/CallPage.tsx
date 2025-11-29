@@ -3,14 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     StreamCall,
     StreamTheme,
-    PaginatedGridLayout,
     CallControls,
     useStreamVideoClient,
     Call,
-    SpeakerLayout,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Loader2 } from 'lucide-react';
+import OneOnOneLayout from '../components/call/OneOnOneLayout';
 
 export default function CallPage() {
     const { id } = useParams<{ id: string }>();
@@ -47,11 +46,7 @@ export default function CallPage() {
         <StreamCall call={call}>
             <StreamTheme>
                 <div className="h-screen w-screen bg-gray-900 flex flex-col">
-                    {/* 
-             SpeakerLayout is generally better for 1-on-1 as it highlights the active speaker (remote user).
-             We configure it to keep the local participant floating or in a smaller view.
-           */}
-                    <SpeakerLayout participantsBarPosition="bottom" />
+                    <OneOnOneLayout />
                     <CallControls onLeave={() => navigate('/messages')} />
                 </div>
             </StreamTheme>
