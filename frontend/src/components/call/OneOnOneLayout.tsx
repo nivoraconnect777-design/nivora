@@ -1,17 +1,25 @@
 import { useCallStateHooks, ParticipantView } from '@stream-io/video-react-sdk';
 import { Loader2 } from 'lucide-react';
+import { useThemeStore } from '../../stores/themeStore';
 
 export default function OneOnOneLayout() {
     const { useLocalParticipant, useRemoteParticipants } = useCallStateHooks();
     const localParticipant = useLocalParticipant();
     const remoteParticipants = useRemoteParticipants();
+    const { isDark } = useThemeStore();
 
     // In a 1-on-1 call, there should be at most 1 remote participant.
     const remoteParticipant = remoteParticipants[0];
 
+    // Dynamic styles based on theme
+    const containerClass = isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900';
+    const labelClass = isDark
+        ? 'bg-black/50 text-white'
+        : 'bg-white/80 text-black border border-gray-200 shadow-sm';
+
     if (!remoteParticipant) {
         return (
-            <div className="flex-1 flex items-center justify-center bg-gray-900 text-white relative">
+            <div className={`flex-1 flex items-center justify-center relative ${containerClass}`}>
                 {/* Show local participant centered while waiting */}
                 <div className="relative w-full h-full flex items-center justify-center">
                     {localParticipant && (
@@ -24,7 +32,7 @@ export default function OneOnOneLayout() {
                         </div>
                     )}
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
-                        <div className="text-center p-6 bg-black/60 rounded-xl backdrop-blur-sm">
+                        <div className="text-center p-6 bg-black/60 rounded-xl backdrop-blur-sm text-white">
                             <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-blue-500" />
                             <h2 className="text-xl font-semibold">Waiting for others to join...</h2>
                         </div>
@@ -35,7 +43,12 @@ export default function OneOnOneLayout() {
     }
 
     return (
-        <div className="flex-1 relative bg-gray-900 overflow-hidden p-4">
+        <div className={`flex-1 relative overflow-hidden p-4 ${containerClass}`}>
+            <style>{`
+                .str-video__participant-details {
+                    display: none !important;
+                }
+            `}</style>
             {/* Remote Participant (Main View) */}
             <div className="absolute inset-4 rounded-3xl overflow-hidden shadow-2xl border border-gray-800">
                 <ParticipantView
@@ -43,8 +56,8 @@ export default function OneOnOneLayout() {
                     trackType="videoTrack"
                     className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-4 left-4 bg-black/50 px-3 py-1 rounded-lg backdrop-blur-md">
-                    <span className="text-white font-medium text-sm">
+                <div className={`absolute bottom-4 left-4 px-3 py-1 rounded-lg backdrop-blur-md ${labelClass}`}>
+                    <span className="font-medium text-sm">
                         {remoteParticipant.name || remoteParticipant.userId}
                     </span>
                 </div>
@@ -58,8 +71,8 @@ export default function OneOnOneLayout() {
                         trackType="videoTrack"
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-0.5 rounded-md backdrop-blur-md">
-                        <span className="text-white text-xs">You</span>
+                    <div className={`absolute bottom-2 left-2 px-2 py-0.5 rounded-md backdrop-blur-md ${labelClass}`}>
+                        <span className="text-xs">You</span>
                     </div>
                 </div>
             )}
