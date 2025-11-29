@@ -147,152 +147,135 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
 
         res.json({
             status: 'success',
-            data: feed,
-        });
-    } catch (error: any) {
-        console.error('Get stories feed error:', error);
-        // Log the full error stack if available
-        if (error.stack) console.error(error.stack);
+            try {
+                const userId = (req as AuthRequest).user!.id;
+                const { id } = req.params;
 
-        res.status(500).json({
-            status: 'error',
-            message: 'Failed to fetch stories',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-    }
-};
-
-// Mark story as viewed
-export const markStoryViewed = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as AuthRequest).user!.id;
-        const { id } = req.params;
-
-        // Check if already viewed
-        const existingView = await prisma.storyView.findUnique({
-            where: {
-                storyId_viewerId: {
-                    storyId: id,
-                    viewerId: userId,
-                },
-            },
-        });
-
-        if (!existingView) {
-            await prisma.storyView.create({
-                data: {
-                    storyId: id,
-                    viewerId: userId,
-                },
-            });
-        }
-
-        res.json({
-            status: 'success',
-            message: 'Story marked as viewed',
-        });
-    } catch (error) {
-        console.error('Mark story viewed error:', error);
-        res.status(500).json({
-            status: 'error',
-            message: 'Failed to mark story as viewed',
-        });
-    }
-};
-
-// Get viewers of a story (for own stories)
-export const getStoryViewers = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as AuthRequest).user!.id;
-        const { id } = req.params;
-
-        const story = await prisma.story.findUnique({
-            where: { id },
-            select: { userId: true },
-        });
-
-        if (!story) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Story not found',
-            });
-        }
-
-        if (story.userId !== userId) {
-            return res.status(403).json({
-                status: 'error',
-                message: 'Unauthorized to view these stats',
-            });
-        }
-
-        const viewers = await prisma.storyView.findMany({
-            where: { storyId: id },
-            include: {
-                viewer: {
-                    select: {
-                        id: true,
-                        username: true,
-                        profilePicUrl: true,
-                        displayName: true,
+                // Check if already viewed
+                const existingView = await prisma.storyView.findUnique({
+                    where: {
+                        storyId_viewerId: {
+                            storyId: id,
+                            viewerId: userId,
+                        },
                     },
-                },
-            },
-            orderBy: { viewedAt: 'desc' },
-        });
+                });
+
+                if(!existingView) {
+                    await prisma.storyView.create({
+                        data: {
+                            storyId: id,
+                            viewerId: userId,
+                        },
+                    });
+                }
 
         res.json({
-            status: 'success',
-            data: viewers.map((v) => ({
-                user: v.viewer,
-                viewedAt: v.viewedAt,
-            })),
-        });
-    } catch (error) {
-        console.error('Get story viewers error:', error);
-        res.status(500).json({
-            status: 'error',
-            message: 'Failed to fetch viewers',
-        });
-    }
-};
+                    status: 'success',
+                    message: 'Story marked as viewed',
+                });
+            } catch(error) {
+                console.error('Mark story viewed error:', error);
+                res.status(500).json({
+                    status: 'error',
+                    message: 'Failed to mark story as viewed',
+                });
+            }
+        };
 
-// Delete a story
-export const deleteStory = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as AuthRequest).user!.id;
-        const { id } = req.params;
+        // Get viewers of a story (for own stories)
+        export const getStoryViewers = async (req: Request, res: Response) => {
+            try {
+                const userId = (req as AuthRequest).user!.id;
+                const { id } = req.params;
 
-        const story = await prisma.story.findUnique({
-            where: { id },
-        });
+                const story = await prisma.story.findUnique({
+                    where: { id },
+                    select: { userId: true },
+                });
 
-        if (!story) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Story not found',
-            });
-        }
+                if (!story) {
+                    return res.status(404).json({
+                        status: 'error',
+                        message: 'Story not found',
+                    });
+                }
 
-        if (story.userId !== userId) {
-            return res.status(403).json({
-                status: 'error',
-                message: 'Unauthorized',
-            });
-        }
+                if (story.userId !== userId) {
+                    return res.status(403).json({
+                        status: 'error',
+                        message: 'Unauthorized to view these stats',
+                    });
+                }
 
-        await prisma.story.delete({
-            where: { id },
-        });
+                const viewers = await prisma.storyView.findMany({
+                    where: { storyId: id },
+                    include: {
+                        viewer: {
+                            select: {
+                                id: true,
+                                username: true,
+                                profilePicUrl: true,
+                                displayName: true,
+                            },
+                        },
+                    },
+                    orderBy: { viewedAt: 'desc' },
+                });
 
-        res.json({
-            status: 'success',
-            message: 'Story deleted',
-        });
-    } catch (error) {
-        console.error('Delete story error:', error);
-        res.status(500).json({
-            status: 'error',
-            message: 'Failed to delete story',
-        });
-    }
-};
+                res.json({
+                    status: 'success',
+                    data: viewers.map((v) => ({
+                        user: v.viewer,
+                        viewedAt: v.viewedAt,
+                    })),
+                });
+            } catch (error) {
+                console.error('Get story viewers error:', error);
+                res.status(500).json({
+                    status: 'error',
+                    message: 'Failed to fetch viewers',
+                });
+            }
+        };
+
+        // Delete a story
+        export const deleteStory = async (req: Request, res: Response) => {
+            try {
+                const userId = (req as AuthRequest).user!.id;
+                const { id } = req.params;
+
+                const story = await prisma.story.findUnique({
+                    where: { id },
+                });
+
+                if (!story) {
+                    return res.status(404).json({
+                        status: 'error',
+                        message: 'Story not found',
+                    });
+                }
+
+                if (story.userId !== userId) {
+                    return res.status(403).json({
+                        status: 'error',
+                        message: 'Unauthorized',
+                    });
+                }
+
+                await prisma.story.delete({
+                    where: { id },
+                });
+
+                res.json({
+                    status: 'success',
+                    message: 'Story deleted',
+                });
+            } catch (error) {
+                console.error('Delete story error:', error);
+                res.status(500).json({
+                    status: 'error',
+                    message: 'Failed to delete story',
+                });
+            }
+        };
