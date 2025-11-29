@@ -3,12 +3,17 @@ import cloudinary from '../config/cloudinary';
 class MediaService {
   async generateUploadSignature(folder: string = 'profile_pictures') {
     const timestamp = Math.round(new Date().getTime() / 1000);
-    
-    const params = {
+
+    // Only include transformation for profile pictures
+    const params: any = {
       timestamp,
       folder,
-      transformation: 'c_fill,g_face,h_150,w_150',
     };
+
+    // Add transformation only for profile pictures
+    if (folder === 'profile_pictures') {
+      params.transformation = 'c_fill,g_face,h_150,w_150';
+    }
 
     const signature = cloudinary.utils.api_sign_request(
       params,
