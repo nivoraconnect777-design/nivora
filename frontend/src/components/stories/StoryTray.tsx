@@ -32,33 +32,56 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
             const response = await api.get('/api/stories/feed');
             return response.data.data;
         },
-        refetchInterval: 60000, // Refetch every minute
+        refetchInterval: 60000,
     });
 
-    const handleStoryClick = (index: number) => {
-        setSelectedStoryIndex(index);
+    // Find current user's story
+    const myStoryIndex = storyUsers.findIndex((s: StoryUser) => s.user.id === user?.id);
+    const hasMyStory = myStoryIndex !== -1;
+
+    // Filter out current user from the list to avoid duplication
+    const otherStories = storyUsers.filter((s: StoryUser) => s.user.id !== user?.id);
+
+    const handleStoryClick = (index: number, isMyStory: boolean = false) => {
+        if (isMyStory) {
+            setSelectedStoryIndex(myStoryIndex);
+        } else {
+            // Adjust index because we filtered out the current user
+            const actualIndex = storyUsers.findIndex((s: StoryUser) => s.user.id === otherStories[index].user.id);
+            setSelectedStoryIndex(actualIndex);
+        }
+    };
+
+    const handleMyStoryClick = () => {
+        if (hasMyStory) {
+            handleStoryClick(0, true);
+        } else {
+            setIsCreateModalOpen(true);
+        }
     };
 
     return (
         <>
             <div className="flex items-center gap-4 overflow-x-auto no-scrollbar h-full px-2">
-                {/* Add Story Button */}
+                {/* Your Story */}
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsCreateModalOpen(true)}
+                    onClick={handleMyStoryClick}
                     className="flex flex-col items-center gap-1 min-w-[80px]"
                 >
                     <div className="relative">
-                        <div className={`w-20 h-20 rounded-full p-[3px] border-2 border-dashed ${isDark ? 'border-gray-600' : 'border-gray-300'
+                        <div className={`w-20 h-20 rounded-full p-[3px] ${hasMyStory
+                                ? 'bg-gradient-to-tr from-yellow-400 via-orange-500 to-fuchsia-600'
+                                : `border-2 border-dashed ${isDark ? 'border-gray-600' : 'border-gray-300'}`
                             }`}>
                             <div className={`w-full h-full rounded-full overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-gray-100'
-                                }`}>
+                                } ${hasMyStory ? `border-2 ${isDark ? 'border-black' : 'border-white'}` : ''}`}>
                                 {user?.profilePicUrl ? (
                                     <img
                                         src={user.profilePicUrl}
                                         alt="Your story"
-                                        className="w-full h-full object-cover opacity-50"
+                                        className={`w-full h-full object-cover ${!hasMyStory ? 'opacity-50' : ''}`}
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
@@ -69,12 +92,13 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
                                 )}
                             </div>
                         </div>
-                        <div className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1 border-2 border-black">
-                            <Plus className="w-4 h-4 text-white" />
-                        </div>
+                        {!hasMyStory && (
+                            <div className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1 border-2 border-black">
+                                <Plus className="w-4 h-4 text-white" />
+                            </div>
+                        )}
                     </div>
-                    <span className={`text-xs truncate w-full text-center font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'
-                        }`}>
+                    <span className={`text-xs truncate w-full text-center font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                         Your Story
                     </span>
                 </motion.button>
@@ -85,7 +109,7 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
                         <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
                     </div>
                 ) : (
-                    storyUsers.map((storyUser: StoryUser, index: number) => (
+                    otherStories.map((storyUser: StoryUser, index: number) => (
                         <motion.button
                             key={storyUser.user.id}
                             whileHover={{ scale: 1.05 }}

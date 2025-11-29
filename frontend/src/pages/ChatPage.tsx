@@ -156,7 +156,9 @@ export default function ChatPage() {
         const otherUser = getOtherMember(activeChannel);
         if (!otherUser) return;
 
-        const callId = `${user.id}-${otherUser.id}-${Date.now()}`;
+        // Stream Call ID must be < 64 chars. 
+        // Using a random string + timestamp is sufficient for uniqueness.
+        const callId = `call_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const call = videoClient.call('default', callId);
 
         try {
