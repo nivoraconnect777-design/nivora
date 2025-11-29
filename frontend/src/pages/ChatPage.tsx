@@ -171,7 +171,13 @@ export default function ChatPage() {
                     ],
                 },
             });
-            navigate(`/call/${callId}`);
+
+            // Send "Call Started" message
+            await activeChannel.sendMessage({
+                text: `📞 Video call started at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            });
+
+            navigate(`/call/${callId}`, { state: { channelId: activeChannel.id } });
         } catch (error) {
             console.error('Failed to start call', error);
         }

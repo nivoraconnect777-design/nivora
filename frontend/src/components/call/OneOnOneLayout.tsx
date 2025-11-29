@@ -35,9 +35,9 @@ export default function OneOnOneLayout() {
     }
 
     return (
-        <div className="flex-1 relative bg-gray-900 overflow-hidden">
-            {/* Remote Participant (Full Screen / Main View) */}
-            <div className="absolute inset-0">
+        <div className="flex-1 relative bg-gray-900 overflow-hidden p-4">
+            {/* Remote Participant (Main View) */}
+            <div className="absolute inset-4 rounded-3xl overflow-hidden shadow-2xl border border-gray-800">
                 <ParticipantView
                     participant={remoteParticipant}
                     trackType="videoTrack"
@@ -52,7 +52,7 @@ export default function OneOnOneLayout() {
 
             {/* Local Participant (Floating Picture-in-Picture) */}
             {localParticipant && (
-                <div className="absolute bottom-24 right-4 w-48 h-36 md:w-64 md:h-48 bg-black rounded-xl overflow-hidden shadow-2xl border-2 border-gray-800 z-20">
+                <div className="absolute bottom-8 right-8 w-48 h-36 md:w-64 md:h-48 bg-black rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-700 z-20">
                     <ParticipantView
                         participant={localParticipant}
                         trackType="videoTrack"
