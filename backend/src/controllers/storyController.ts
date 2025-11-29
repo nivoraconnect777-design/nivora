@@ -62,7 +62,17 @@ export const createStory = async (req: Request, res: Response) => {
 // Get stories feed (followed users + self)
 export const getStoriesFeed = async (req: Request, res: Response) => {
     try {
-        const userId = (req as AuthRequest).user!.id;
+        const userId = (req as AuthRequest).user?.id;
+
+        if (!userId) {
+            console.error('Get stories feed error: User ID missing from request');
+            return res.status(401).json({
+                status: 'error',
+                message: 'Unauthorized',
+            });
+        }
+
+        console.log(`Fetching stories feed for user: ${userId}`);
 
         // Get list of users followed by current user
         const following = await prisma.follow.findMany({
@@ -73,6 +83,8 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
         const followingIds = following.map((f) => f.followingId);
         // Include self in the feed
         const targetUserIds = [...followingIds, userId];
+
+        console.log(`Target user IDs for stories: ${targetUserIds.length}`);
 
         // Fetch active stories
         const stories = await prisma.story.findMany({
@@ -95,6 +107,8 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
             },
             orderBy: { createdAt: 'asc' },
         });
+
+        console.log(`Found ${stories.length} active stories`);
 
         // Group stories by user
         const storiesByUser: Record<string, any> = {};
@@ -135,11 +149,15 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
             status: 'success',
             data: feed,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Get stories feed error:', error);
+        // Log the full error stack if available
+        if (error.stack) console.error(error.stack);
+
         res.status(500).json({
             status: 'error',
             message: 'Failed to fetch stories',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
