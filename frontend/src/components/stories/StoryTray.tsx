@@ -72,7 +72,9 @@ export default function StoryTray({ isDark }: StoryTrayProps) {
                 >
                     <div className="relative">
                         <div className={`w-20 h-20 rounded-full p-[3px] ${hasMyStory
-                                ? 'bg-gradient-to-tr from-yellow-400 via-orange-500 to-fuchsia-600'
+                                ? (storyUsers[myStoryIndex]?.hasUnseen
+                                    ? 'bg-gradient-to-tr from-yellow-400 via-orange-500 to-fuchsia-600'
+                                    : isDark ? 'bg-gray-700' : 'bg-gray-300')
                                 : `border-2 border-dashed ${isDark ? 'border-gray-600' : 'border-gray-300'}`
                             }`}>
                             <div className={`w-full h-full rounded-full overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-gray-100'
