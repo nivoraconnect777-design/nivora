@@ -1,8 +1,10 @@
+import ReactDOM from 'react-dom';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Eye, Heart, Send } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Eye, Heart, Send, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import api from '../../lib/api';
+import toast from 'react-hot-toast';
 
 interface Story {
     id: string;
@@ -36,8 +38,14 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
     const [isPaused, setIsPaused] = useState(false);
     const [viewers, setViewers] = useState<any[]>([]);
     const [showViewers, setShowViewers] = useState(false);
+    const [showOptions, setShowOptions] = useState(false);
 
     const currentUserData = storyUsers[currentUserIndex];
+    // Safety check if data is missing
+    if (!currentUserData || !currentUserData.stories[currentStoryIndex]) {
+        onClose();
+        return null;
+    }
     const currentStory = currentUserData.stories[currentStoryIndex];
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -61,7 +69,7 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
 
     // Progress timer
     useEffect(() => {
-        if (isPaused || showViewers) return;
+        if (isPaused || showViewers || showOptions) return;
 
         const duration = currentStory.duration || 5000;
         const intervalTime = 50;
@@ -78,7 +86,7 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
         }, intervalTime);
 
         return () => clearInterval(progressInterval.current);
-    }, [currentStory, isPaused, showViewers]);
+    }, [currentStory, isPaused, showViewers, showOptions]);
 
     // Reset progress when story changes
     useEffect(() => {
@@ -109,18 +117,44 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+    const handleDelete = async () => {
+        try {
+            await api.delete(`/api/stories/${currentStory.id}`);
+            toast.success('Story deleted');
+
+            // If it was the only story, close viewer
+            if (currentUserData.stories.length === 1) {
+                onClose();
+                // Ideally we should also refresh the feed here
+                window.location.reload(); // Simple refresh for now
+            } else {
+                // Move to next or prev story
+                if (currentStoryIndex < currentUserData.stories.length - 1) {
+                    setCurrentStoryIndex(prev => prev); // Stay at same index (next story moves into this slot)
+                } else {
+                    setCurrentStoryIndex(prev => prev - 1);
+                }
+                setShowOptions(false);
+                // Force refresh would be better but complex to trigger from here without context
+            }
+        } catch (error) {
+            console.error('Failed to delete story:', error);
+            toast.error('Failed to delete story');
+        }
+    };
+
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
             {/* Close Button */}
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 z-20 text-white p-2"
+                className="absolute top-4 right-4 z-30 text-white p-2 hover:bg-white/10 rounded-full transition-colors"
             >
                 <X className="w-8 h-8" />
             </button>
 
             {/* Main Content */}
-            <div className="relative w-full h-full md:max-w-md md:h-[90vh] md:rounded-2xl overflow-hidden bg-gray-900">
+            <div className="relative w-full h-full md:max-w-md md:h-[90vh] md:rounded-2xl overflow-hidden bg-gray-900 shadow-2xl">
 
                 {/* Progress Bars */}
                 <div className="absolute top-4 left-2 right-2 z-20 flex gap-1">
@@ -151,6 +185,33 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
                         {new Date(currentStory.createdAt).getHours()}h
                     </span>
                 </div>
+
+                {/* Options Menu (Owner Only) */}
+                {currentUserData.user.id === currentUser?.id && (
+                    <div className="absolute top-8 right-16 z-30">
+                        <button
+                            onClick={() => {
+                                setIsPaused(true);
+                                setShowOptions(!showOptions);
+                            }}
+                            className="text-white p-1 hover:bg-white/10 rounded-full"
+                        >
+                            <MoreHorizontal className="w-6 h-6" />
+                        </button>
+
+                        {showOptions && (
+                            <div className="absolute right-0 mt-2 w-32 bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
+                                <button
+                                    onClick={handleDelete}
+                                    className="w-full flex items-center gap-2 px-4 py-3 text-red-500 hover:bg-gray-700 text-sm font-medium"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Media */}
                 <div
@@ -249,6 +310,7 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose }: S
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
