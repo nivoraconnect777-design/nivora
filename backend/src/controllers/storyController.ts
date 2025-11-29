@@ -100,10 +100,10 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
                         profilePicUrl: true,
                     },
                 },
-                views: {
-                    where: { viewerId: userId },
-                    select: { id: true }, // Check if current user viewed
-                },
+                // views: {
+                //     where: { viewerId: userId },
+                //     select: { id: true }, // Check if current user viewed
+                // },
             },
             orderBy: { createdAt: 'asc' },
         });
@@ -113,7 +113,7 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
         // Group stories by user
         const storiesByUser: Record<string, any> = {};
 
-        stories.forEach((story) => {
+        stories.forEach((story: any) => {
             if (!storiesByUser[story.userId]) {
                 storiesByUser[story.userId] = {
                     user: story.user,
@@ -122,7 +122,9 @@ export const getStoriesFeed = async (req: Request, res: Response) => {
                 };
             }
 
-            const isViewed = story.views.length > 0;
+            // const isViewed = story.views.length > 0;
+            const isViewed = false; // Temporarily disabled due to missing table
+
             storiesByUser[story.userId].stories.push({
                 ...story,
                 isViewed,
