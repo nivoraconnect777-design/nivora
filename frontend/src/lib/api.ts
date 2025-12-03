@@ -41,8 +41,16 @@ api.interceptors.response.use(
         // Retry original request (new accessToken is now in cookie)
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, logout user
-        window.location.href = '/login';
+        // Refresh failed - only redirect if not already on login/register page
+        const currentPath = window.location.pathname;
+        const isAuthPage = currentPath === '/login' || currentPath === '/register' || currentPath.startsWith('/auth');
+
+        if (!isAuthPage) {
+          // Clear any auth state from localStorage/sessionStorage if you have any
+          // Then redirect to login
+          window.location.href = '/login';
+        }
+
         return Promise.reject(refreshError);
       }
     }

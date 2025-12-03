@@ -16,13 +16,21 @@ export default function StreamVideoProvider({ children }: StreamVideoProviderPro
     const [videoClient, setVideoClient] = useState<StreamVideoClient | null>(null);
 
     useEffect(() => {
-        if (!user || !apiKey) return;
+        // Don't initialize if no user or no API key
+        if (!user || !apiKey) {
+            setVideoClient(null);
+            return;
+        }
 
         let client: StreamVideoClient;
+        let isMounted = true;
 
         const initVideo = async () => {
             try {
                 const { data } = await api.post('/api/stream/token');
+
+                // Check if component is still mounted before setting state
+                if (!isMounted) return;
 
                 const streamUser: User = {
                     id: user.id,
@@ -37,16 +45,22 @@ export default function StreamVideoProvider({ children }: StreamVideoProviderPro
                 });
 
                 setVideoClient(client);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Failed to connect to Stream Video', error);
+                // Don't set client if initialization fails
+                // This prevents infinite retry loops
+                if (isMounted) {
+                    setVideoClient(null);
+                }
             }
         };
 
         initVideo();
 
         return () => {
+            isMounted = false;
             if (client) {
-                client.disconnectUser();
+                client.disconnectUser().catch(console.error);
             }
         };
     }, [user]);
