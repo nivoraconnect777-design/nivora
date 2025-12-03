@@ -205,7 +205,21 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose, isD
                         {currentUserData.user.username}
                     </span>
                     <span className="text-white/60 text-xs">
-                        {new Date(currentStory.createdAt).getHours()}h
+                        {(() => {
+                            const now = new Date();
+                            const posted = new Date(currentStory.createdAt);
+                            const diffMs = now.getTime() - posted.getTime();
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const diffHours = Math.floor(diffMs / 3600000);
+
+                            if (diffMins < 60) {
+                                return `${diffMins}m`;
+                            } else if (diffHours < 24) {
+                                return `${diffHours}h`;
+                            } else {
+                                return `${Math.floor(diffHours / 24)}d`;
+                            }
+                        })()}
                     </span>
                 </div>
 
