@@ -199,7 +199,7 @@ export default function ProfilePage() {
 
       {/* Tabs */}
       <div className={`border-t ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-        <div className="flex justify-center gap-16 py-4">
+        <div className="flex justify-center gap-8 md:gap-16 py-4">
           {tabs.map((tab) => (
             <motion.button
               key={tab.id}

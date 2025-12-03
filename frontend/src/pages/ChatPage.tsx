@@ -200,7 +200,7 @@ export default function ChatPage() {
     return (
         <div className={`flex h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             {/* Conversations List */}
-            <div className={`w-full md:w-96 border-r ${isDark ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}>
+            <div className={`${activeChannel ? 'hidden md:block' : 'w-full'} md:w-96 border-r ${isDark ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}>
                 <div className={`p-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
                     <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Messages</h2>
                 </div>
@@ -253,11 +253,11 @@ export default function ChatPage() {
 
             {/* Chat Window */}
             {activeChannel ? (
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col w-full md:w-auto">
                     {/* Chat Header */}
                     <div className={`p-4 border-b ${isDark ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'} flex items-center gap-3`}>
                         <button
-                            onClick={() => navigate(-1)}
+                            onClick={() => setActiveChannel(null)}
                             className={`md:hidden p-2 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
                         >
                             <ArrowLeft className="w-5 h-5" />
@@ -339,7 +339,7 @@ export default function ChatPage() {
                     </form>
                 </div>
             ) : (
-                <div className={`flex-1 flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                <div className={`hidden md:flex flex-1 items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                     <div className="text-center">
                         <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                             Select a conversation to start chatting

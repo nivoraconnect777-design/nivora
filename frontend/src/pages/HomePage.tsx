@@ -86,7 +86,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-full mx-auto px-4 py-8 md:max-w-2xl">
       {/* Posts Feed */}
       {isLoading ? (
         <div className="flex justify-center items-center py-16">

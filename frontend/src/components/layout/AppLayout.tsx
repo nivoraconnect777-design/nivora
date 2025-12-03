@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import CreatePostModal from '../common/CreatePostModal';
+import PageTransition from './PageTransition';
 import { useThemeStore } from '../../stores/themeStore';
 import { useAuthStore } from '../../stores/authStore';
 import api from '../../lib/api';
@@ -34,7 +35,9 @@ export default function AppLayout() {
       <Sidebar />
       <Navbar />
       <main className={`pb-16 md:pb-0 ${isAuthenticated ? 'md:ml-64' : ''}`}>
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
       <CreatePostModal />
     </div>

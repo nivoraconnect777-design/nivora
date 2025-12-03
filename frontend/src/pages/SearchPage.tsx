@@ -65,7 +65,7 @@ export default function SearchPage() {
   const users: User[] = data?.users || [];
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-full mx-auto px-4 py-8 md:max-w-2xl">
       {/* Search Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -98,8 +98,8 @@ export default function SearchPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for users..."
             className={`w-full pl-12 pr-4 py-4 rounded-2xl transition-all ${isDark
-                ? 'bg-gray-800 text-white placeholder-gray-400 focus:ring-blue-500'
-                : 'bg-white text-gray-900 placeholder-gray-500 focus:ring-blue-500 shadow-lg'
+              ? 'bg-gray-800 text-white placeholder-gray-400 focus:ring-blue-500'
+              : 'bg-white text-gray-900 placeholder-gray-500 focus:ring-blue-500 shadow-lg'
               } focus:outline-none focus:ring-2`}
             autoFocus
           />

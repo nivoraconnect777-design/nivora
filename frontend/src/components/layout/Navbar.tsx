@@ -1,10 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut } from 'lucide-react';
+import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut, Menu } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
 import toast from 'react-hot-toast';
 import StoryTray from '../stories/StoryTray';
+import MobileMenu from './MobileMenu';
 import { useState, useRef, useEffect } from 'react';
 
 export default function Navbar() {
@@ -12,6 +13,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -78,18 +80,32 @@ export default function Navbar() {
       {/* Mobile Navbar - Bottom */}
       {isAuthenticated && (
         <nav
-          className={`md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t ${isDark ? 'bg-gray-900/80 border-gray-800' : 'bg-white/80 border-gray-200'
+          className={`md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t ${isDark ? 'bg-gray-900/95 border-gray-800' : 'bg-white/95 border-gray-200'
             }`}
         >
           <div className="flex items-center justify-around h-16 px-2">
-            <MobileNavLink to="/" icon={Home} active={isActive('/')} isDark={isDark} />
-            <MobileNavLink to="/search" icon={Search} active={isActive('/search')} isDark={isDark} />
-            <MobileNavLink to="/reels" icon={Film} active={isActive('/reels')} isDark={isDark} />
-            <MobileNavLink to="/messages" icon={MessageCircle} active={isActive('/messages')} isDark={isDark} />
-            <MobileNavLink to="/profile" icon={User} active={isActive('/profile')} isDark={isDark} />
+            <MobileNavLink to="/home" icon={Home} active={isActive('/home')} isDark={isDark} label="Home" />
+            <MobileNavLink to="/search" icon={Search} active={isActive('/search')} isDark={isDark} label="Search" />
+            <MobileNavLink to="/reels" icon={Film} active={isActive('/reels')} isDark={isDark} label="Reels" />
+            <MobileNavLink to="/messages" icon={MessageCircle} active={isActive('/messages')} isDark={isDark} label="Messages" />
+            <MobileNavLink to={`/profile/${useAuthStore.getState().user?.username || ''}`} icon={User} active={location.pathname.startsWith('/profile')} isDark={isDark} label="Profile" />
+
+            {/* Hamburger Menu Button */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setIsMobileMenuOpen(true)}
+              className={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              aria-label="Open menu"
+            >
+              <Menu className="w-6 h-6" />
+            </motion.button>
           </div>
         </nav>
       )}
+
+      {/* Mobile Menu Drawer */}
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
 
       {/* Spacer for fixed navbar */}
       {isAuthenticated && isHomePage && <div className="h-32 hidden md:block" />}
