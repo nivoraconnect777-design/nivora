@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { redis, CACHE_TTL } from '../config/redisClient';
 
 const prisma = new PrismaClient();
 
@@ -9,6 +10,19 @@ export const getExplorePosts = async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
         const skip = (page - 1) * limit;
+
+        const cacheKey = `explore:${page}:${limit}`;
+        const cachedPosts = await redis.get(cacheKey);
+
+        if (cachedPosts) {
+            return res.json({
+                status: 'success',
+                data: {
+                    posts: cachedPosts,
+                    hasMore: (cachedPosts as any[]).length === limit,
+                },
+            });
+        }
 
         // Get list of users the current user follows
         const following = await prisma.follow.findMany({
@@ -66,6 +80,8 @@ export const getExplorePosts = async (req: Request, res: Response) => {
             isLiked: post.likes.length > 0,
             likes: undefined, // Remove the raw likes array
         }));
+
+        await redis.set(cacheKey, JSON.stringify(formattedPosts), { ex: CACHE_TTL.EXPLORE });
 
         res.json({
             status: 'success',

@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth';
+import { redis, CACHE_TTL } from '../config/redisClient';
 
 export const createPost = async (req: AuthRequest, res: Response) => {
     try {
@@ -33,6 +34,18 @@ export const createPost = async (req: AuthRequest, res: Response) => {
             },
         });
 
+        // Invalidate feed caches
+        const keys = await redis.keys('feed:*');
+        if (keys.length > 0) {
+            await redis.del(...keys);
+        }
+
+        // Invalidate explore cache
+        const exploreKeys = await redis.keys('explore:*');
+        if (exploreKeys.length > 0) {
+            await redis.del(...exploreKeys);
+        }
+
         res.status(201).json({ success: true, post });
     } catch (error) {
         console.error('Create post error:', error);
@@ -45,6 +58,13 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
+
+        const cacheKey = `feed:${page}:${limit}`;
+        const cachedPosts = await redis.get(cacheKey);
+
+        if (cachedPosts) {
+            return res.status(200).json({ success: true, posts: cachedPosts });
+        }
 
         const posts = await prisma.post.findMany({
             take: limit,
@@ -87,6 +107,8 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
             _count: undefined, // Remove _count from response
         }));
 
+        await redis.set(cacheKey, JSON.stringify(transformedPosts), { ex: CACHE_TTL.FEED });
+
         res.status(200).json({ success: true, posts: transformedPosts });
     } catch (error) {
         console.error('Get posts error:', error);
@@ -97,6 +119,13 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
 export const getPostById = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
+
+        const cacheKey = `post:${id}`;
+        const cachedPost = await redis.get(cacheKey);
+
+        if (cachedPost) {
+            return res.status(200).json({ success: true, post: cachedPost });
+        }
 
         const post = await prisma.post.findUnique({
             where: { id },
@@ -138,6 +167,8 @@ export const getPostById = async (req: AuthRequest, res: Response) => {
             _count: undefined,
         };
 
+        await redis.set(cacheKey, JSON.stringify(transformedPost), { ex: CACHE_TTL.POST });
+
         res.status(200).json({ success: true, post: transformedPost });
     } catch (error) {
         console.error('Get post error:', error);
@@ -165,6 +196,21 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
         await prisma.post.delete({
             where: { id },
         });
+
+        // Invalidate specific post cache
+        await redis.del(`post:${id}`);
+
+        // Invalidate feed caches
+        const keys = await redis.keys('feed:*');
+        if (keys.length > 0) {
+            await redis.del(...keys);
+        }
+
+        // Invalidate explore cache
+        const exploreKeys = await redis.keys('explore:*');
+        if (exploreKeys.length > 0) {
+            await redis.del(...exploreKeys);
+        }
 
         res.status(200).json({ success: true, message: 'Post deleted successfully' });
     } catch (error) {
@@ -197,6 +243,22 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
                     id: existingLike.id,
                 },
             });
+
+            // Invalidate specific post cache
+            await redis.del(`post:${id}`);
+
+            // Invalidate feed caches
+            const keys = await redis.keys('feed:*');
+            if (keys.length > 0) {
+                await redis.del(...keys);
+            }
+
+            // Invalidate explore cache
+            const exploreKeys = await redis.keys('explore:*');
+            if (exploreKeys.length > 0) {
+                await redis.del(...exploreKeys);
+            }
+
             res.status(200).json({ success: true, isLiked: false });
         } else {
             await prisma.like.create({
@@ -217,6 +279,21 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
                         postId: id,
                     },
                 });
+            }
+
+            // Invalidate specific post cache
+            await redis.del(`post:${id}`);
+
+            // Invalidate feed caches
+            const keys = await redis.keys('feed:*');
+            if (keys.length > 0) {
+                await redis.del(...keys);
+            }
+
+            // Invalidate explore cache
+            const exploreKeys = await redis.keys('explore:*');
+            if (exploreKeys.length > 0) {
+                await redis.del(...exploreKeys);
             }
 
             res.status(200).json({ success: true, isLiked: true });
@@ -286,6 +363,21 @@ export const addComment = async (req: AuthRequest, res: Response) => {
             isLiked: false,
             _count: undefined,
         };
+
+        // Invalidate specific post cache
+        await redis.del(`post:${id}`);
+
+        // Invalidate feed caches
+        const keys = await redis.keys('feed:*');
+        if (keys.length > 0) {
+            await redis.del(...keys);
+        }
+
+        // Invalidate explore cache
+        const exploreKeys = await redis.keys('explore:*');
+        if (exploreKeys.length > 0) {
+            await redis.del(...exploreKeys);
+        }
 
         res.status(201).json({ success: true, comment: transformedComment });
     } catch (error) {
