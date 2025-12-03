@@ -34,16 +34,18 @@ export const createPost = async (req: AuthRequest, res: Response) => {
             },
         });
 
-        // Invalidate feed caches
-        const keys = await redis.keys('feed:*');
-        if (keys.length > 0) {
-            await redis.del(...keys);
-        }
+        // Invalidate feed caches if Redis is available
+        if (redis) {
+            const keys = await redis.keys('feed:*');
+            if (keys.length > 0) {
+                await redis.del(...keys);
+            }
 
-        // Invalidate explore cache
-        const exploreKeys = await redis.keys('explore:*');
-        if (exploreKeys.length > 0) {
-            await redis.del(...exploreKeys);
+            // Invalidate explore cache
+            const exploreKeys = await redis.keys('explore:*');
+            if (exploreKeys.length > 0) {
+                await redis.del(...exploreKeys);
+            }
         }
 
         res.status(201).json({ success: true, post });
@@ -59,11 +61,14 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
-        const cacheKey = `feed:${page}:${limit}`;
-        const cachedPosts = await redis.get(cacheKey);
+        // Try to get from cache if Redis is available
+        if (redis) {
+            const cacheKey = `feed:${page}:${limit}`;
+            const cachedPosts = await redis.get(cacheKey);
 
-        if (cachedPosts) {
-            return res.status(200).json({ success: true, posts: cachedPosts });
+            if (cachedPosts) {
+                return res.status(200).json({ success: true, posts: cachedPosts });
+            }
         }
 
         const posts = await prisma.post.findMany({
@@ -107,7 +112,11 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
             _count: undefined, // Remove _count from response
         }));
 
-        await redis.set(cacheKey, JSON.stringify(transformedPosts), { ex: CACHE_TTL.FEED });
+        // Cache the result if Redis is available
+        if (redis) {
+            const cacheKey = `feed:${page}:${limit}`;
+            await redis.set(cacheKey, JSON.stringify(transformedPosts), { ex: CACHE_TTL.FEED });
+        }
 
         res.status(200).json({ success: true, posts: transformedPosts });
     } catch (error) {
@@ -120,11 +129,14 @@ export const getPostById = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
 
-        const cacheKey = `post:${id}`;
-        const cachedPost = await redis.get(cacheKey);
+        // Try to get from cache if Redis is available
+        if (redis) {
+            const cacheKey = `post:${id}`;
+            const cachedPost = await redis.get(cacheKey);
 
-        if (cachedPost) {
-            return res.status(200).json({ success: true, post: cachedPost });
+            if (cachedPost) {
+                return res.status(200).json({ success: true, post: cachedPost });
+            }
         }
 
         const post = await prisma.post.findUnique({
@@ -167,7 +179,11 @@ export const getPostById = async (req: AuthRequest, res: Response) => {
             _count: undefined,
         };
 
-        await redis.set(cacheKey, JSON.stringify(transformedPost), { ex: CACHE_TTL.POST });
+        // Cache the result if Redis is available
+        if (redis) {
+            const cacheKey = `post:${id}`;
+            await redis.set(cacheKey, JSON.stringify(transformedPost), { ex: CACHE_TTL.POST });
+        }
 
         res.status(200).json({ success: true, post: transformedPost });
     } catch (error) {
@@ -197,19 +213,19 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
             where: { id },
         });
 
-        // Invalidate specific post cache
-        await redis.del(`post:${id}`);
+        // Invalidate caches if Redis is available
+        if (redis) {
+            await redis.del(`post:${id}`);
 
-        // Invalidate feed caches
-        const keys = await redis.keys('feed:*');
-        if (keys.length > 0) {
-            await redis.del(...keys);
-        }
+            const keys = await redis.keys('feed:*');
+            if (keys.length > 0) {
+                await redis.del(...keys);
+            }
 
-        // Invalidate explore cache
-        const exploreKeys = await redis.keys('explore:*');
-        if (exploreKeys.length > 0) {
-            await redis.del(...exploreKeys);
+            const exploreKeys = await redis.keys('explore:*');
+            if (exploreKeys.length > 0) {
+                await redis.del(...exploreKeys);
+            }
         }
 
         res.status(200).json({ success: true, message: 'Post deleted successfully' });
@@ -244,19 +260,19 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
                 },
             });
 
-            // Invalidate specific post cache
-            await redis.del(`post:${id}`);
+            // Invalidate caches if Redis is available
+            if (redis) {
+                await redis.del(`post:${id}`);
 
-            // Invalidate feed caches
-            const keys = await redis.keys('feed:*');
-            if (keys.length > 0) {
-                await redis.del(...keys);
-            }
+                const keys = await redis.keys('feed:*');
+                if (keys.length > 0) {
+                    await redis.del(...keys);
+                }
 
-            // Invalidate explore cache
-            const exploreKeys = await redis.keys('explore:*');
-            if (exploreKeys.length > 0) {
-                await redis.del(...exploreKeys);
+                const exploreKeys = await redis.keys('explore:*');
+                if (exploreKeys.length > 0) {
+                    await redis.del(...exploreKeys);
+                }
             }
 
             res.status(200).json({ success: true, isLiked: false });
@@ -281,19 +297,19 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
                 });
             }
 
-            // Invalidate specific post cache
-            await redis.del(`post:${id}`);
+            // Invalidate caches if Redis is available
+            if (redis) {
+                await redis.del(`post:${id}`);
 
-            // Invalidate feed caches
-            const keys = await redis.keys('feed:*');
-            if (keys.length > 0) {
-                await redis.del(...keys);
-            }
+                const keys = await redis.keys('feed:*');
+                if (keys.length > 0) {
+                    await redis.del(...keys);
+                }
 
-            // Invalidate explore cache
-            const exploreKeys = await redis.keys('explore:*');
-            if (exploreKeys.length > 0) {
-                await redis.del(...exploreKeys);
+                const exploreKeys = await redis.keys('explore:*');
+                if (exploreKeys.length > 0) {
+                    await redis.del(...exploreKeys);
+                }
             }
 
             res.status(200).json({ success: true, isLiked: true });
@@ -364,19 +380,19 @@ export const addComment = async (req: AuthRequest, res: Response) => {
             _count: undefined,
         };
 
-        // Invalidate specific post cache
-        await redis.del(`post:${id}`);
+        // Invalidate caches if Redis is available
+        if (redis) {
+            await redis.del(`post:${id}`);
 
-        // Invalidate feed caches
-        const keys = await redis.keys('feed:*');
-        if (keys.length > 0) {
-            await redis.del(...keys);
-        }
+            const keys = await redis.keys('feed:*');
+            if (keys.length > 0) {
+                await redis.del(...keys);
+            }
 
-        // Invalidate explore cache
-        const exploreKeys = await redis.keys('explore:*');
-        if (exploreKeys.length > 0) {
-            await redis.del(...exploreKeys);
+            const exploreKeys = await redis.keys('explore:*');
+            if (exploreKeys.length > 0) {
+                await redis.del(...exploreKeys);
+            }
         }
 
         res.status(201).json({ success: true, comment: transformedComment });

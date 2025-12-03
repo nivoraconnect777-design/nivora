@@ -11,17 +11,20 @@ export const getExplorePosts = async (req: Request, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 20;
         const skip = (page - 1) * limit;
 
-        const cacheKey = `explore:${page}:${limit}`;
-        const cachedPosts = await redis.get(cacheKey);
+        // Try to get from cache if Redis is available
+        if (redis) {
+            const cacheKey = `explore:${page}:${limit}`;
+            const cachedPosts = await redis.get(cacheKey);
 
-        if (cachedPosts) {
-            return res.json({
-                status: 'success',
-                data: {
-                    posts: cachedPosts,
-                    hasMore: (cachedPosts as any[]).length === limit,
-                },
-            });
+            if (cachedPosts) {
+                return res.json({
+                    status: 'success',
+                    data: {
+                        posts: cachedPosts,
+                        hasMore: (cachedPosts as any[]).length === limit,
+                    },
+                });
+            }
         }
 
         // Get list of users the current user follows
@@ -81,7 +84,11 @@ export const getExplorePosts = async (req: Request, res: Response) => {
             likes: undefined, // Remove the raw likes array
         }));
 
-        await redis.set(cacheKey, JSON.stringify(formattedPosts), { ex: CACHE_TTL.EXPLORE });
+        // Cache the result if Redis is available
+        if (redis) {
+            const cacheKey = `explore:${page}:${limit}`;
+            await redis.set(cacheKey, JSON.stringify(formattedPosts), { ex: CACHE_TTL.EXPLORE });
+        }
 
         res.json({
             status: 'success',

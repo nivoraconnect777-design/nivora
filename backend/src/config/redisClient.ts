@@ -3,14 +3,19 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    console.warn('Redis credentials not found in environment variables. Caching will be disabled.');
+const hasRedisCredentials = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
+if (!hasRedisCredentials) {
+    console.warn('⚠️  Redis credentials not found. Caching is DISABLED.');
 }
 
-export const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL || '',
-    token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-});
+// Export null if credentials are missing to prevent errors
+export const redis = hasRedisCredentials
+    ? new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL!,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+    : null;
 
 export const CACHE_TTL = {
     FEED: 60, // 1 minute
