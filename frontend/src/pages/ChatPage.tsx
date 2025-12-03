@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { StreamChat, Channel as StreamChannel } from 'stream-chat';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
@@ -34,6 +34,7 @@ export default function ChatPage() {
     const navigate = useNavigate();
     const targetUserId = location.state?.targetUserId;
     const videoClient = useStreamVideoClient();
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Initialize Stream Chat
     useEffect(() => {
@@ -108,6 +109,11 @@ export default function ChatPage() {
             activeChannel.off('message.new', handleNewMessage);
         };
     }, [activeChannel]);
+
+    // Auto-scroll to bottom when messages change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
 
     const loadMessages = async (channel: StreamChannel) => {
         const response = await channel.query({ messages: { limit: 50 } });
@@ -199,7 +205,7 @@ export default function ChatPage() {
                     <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Messages</h2>
                 </div>
 
-                <div className="overflow-y-auto h-[calc(100vh-80px)]">
+                <div className="overflow-y-auto h-[calc(100vh-80px)] scrollbar-hide">
                     {channels.length === 0 ? (
                         <div className="p-8 text-center">
                             <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -304,6 +310,7 @@ export default function ChatPage() {
                                 </div>
                             );
                         })}
+                        <div ref={messagesEndRef} />
                     </div>
 
                     {/* Message Input */}
