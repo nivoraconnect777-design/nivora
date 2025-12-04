@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut, Menu } from 'lucide-react';
+import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut, Menu, PlusSquare } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
+import { useUIStore } from '../../stores/uiStore';
 import toast from 'react-hot-toast';
 import StoryTray from '../stories/StoryTray';
 import MobileMenu from './MobileMenu';
@@ -41,14 +42,23 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Mobile Theme Toggle */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleTheme}
-            className={`p-2 rounded-full ${isDark ? 'text-yellow-400' : 'text-gray-600'}`}
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => useUIStore.getState().openCreatePostModal()}
+              className={`p-2 rounded-full ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
+            >
+              <PlusSquare className="w-6 h-6" />
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleTheme}
+              className={`p-2 rounded-full ${isDark ? 'text-yellow-400' : 'text-gray-600'}`}
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </motion.button>
+          </div>
         </nav>
       )}
 

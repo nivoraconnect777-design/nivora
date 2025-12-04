@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, Compass, Bookmark, Settings, Sun, Moon, LogOut, User } from 'lucide-react';
+import { X, Bell, Compass, Bookmark, Settings, Sun, Moon, LogOut, User, PlusSquare } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../stores/themeStore';
 import { useAuthStore } from '../../stores/authStore';
+import { useUIStore } from '../../stores/uiStore';
 import toast from 'react-hot-toast';
 
 interface MobileMenuProps {
@@ -70,8 +71,8 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                     whileTap={{ scale: 0.9 }}
                                     onClick={onClose}
                                     className={`p-2 rounded-xl transition-colors ${isDark
-                                            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                 >
                                     <X className="w-6 h-6" />
@@ -113,6 +114,27 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
                         {/* Menu Items */}
                         <nav className="p-4 space-y-1">
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0 }}
+                            >
+                                <button
+                                    onClick={() => {
+                                        useUIStore.getState().openCreatePostModal();
+                                        onClose();
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isDark
+                                        ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                        }`}
+                                >
+                                    <div className="p-1 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+                                        <PlusSquare className="w-5 h-5 text-white" />
+                                    </div>
+                                    <span className="font-medium">Create Post</span>
+                                </button>
+                            </motion.div>
                             {menuItems.map((item, index) => (
                                 <motion.div
                                     key={item.path}
@@ -124,8 +146,8 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                         <motion.div
                                             whileTap={{ scale: 0.98 }}
                                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isDark
-                                                    ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                                ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                                                 }`}
                                         >
                                             <item.icon className="w-5 h-5" />
@@ -145,8 +167,8 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleThemeToggle}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isDark
-                                        ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                    ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                                     }`}
                             >
                                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -157,8 +179,8 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleLogout}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isDark
-                                        ? 'text-red-400 hover:bg-red-500/20'
-                                        : 'text-red-600 hover:bg-red-50'
+                                    ? 'text-red-400 hover:bg-red-500/20'
+                                    : 'text-red-600 hover:bg-red-50'
                                     }`}
                             >
                                 <LogOut className="w-5 h-5" />

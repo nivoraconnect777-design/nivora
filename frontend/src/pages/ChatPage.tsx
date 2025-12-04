@@ -72,7 +72,8 @@ export default function ChatPage() {
                     await channel.watch();
                     setActiveChannel(channel);
                     loadMessages(channel);
-                } else if (channelList.length > 0) {
+                } else if (channelList.length > 0 && window.innerWidth >= 768) {
+                    // Only auto-select on desktop
                     setActiveChannel(channelList[0]);
                     loadMessages(channelList[0]);
                 }
