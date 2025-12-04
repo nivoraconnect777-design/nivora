@@ -87,16 +87,9 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-full mx-auto px-0 md:px-4 py-20 md:py-8 md:max-w-2xl">
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Nivora
-        </h1>
-      </div>
-
+    <div className="max-w-full mx-auto px-4 py-20 md:py-8 md:max-w-2xl">
       {/* Mobile Story Tray */}
-      <div className="md:hidden mt-14 mb-6 px-0">
+      <div className="md:hidden mb-6">
         <StoryTray isDark={isDark} />
       </div>
 
