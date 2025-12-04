@@ -44,6 +44,7 @@ export default function CreateMenu({ isOpen, onClose }: CreateMenuProps) {
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                         className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw] z-50 rounded-2xl shadow-2xl ${isDark ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-200'
                             }`}
+                        style={{ marginLeft: 0, marginRight: 0 }}
                     >
                         {/* Header */}
                         <div className={`p-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
@@ -69,8 +70,8 @@ export default function CreateMenu({ isOpen, onClose }: CreateMenuProps) {
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleCreatePost}
                                 className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors ${isDark
-                                        ? 'hover:bg-gray-800 text-gray-300'
-                                        : 'hover:bg-gray-50 text-gray-700'
+                                    ? 'hover:bg-gray-800 text-gray-300'
+                                    : 'hover:bg-gray-50 text-gray-700'
                                     }`}
                             >
                                 <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
@@ -91,8 +92,8 @@ export default function CreateMenu({ isOpen, onClose }: CreateMenuProps) {
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleCreateStory}
                                 className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors ${isDark
-                                        ? 'hover:bg-gray-800 text-gray-300'
-                                        : 'hover:bg-gray-50 text-gray-700'
+                                    ? 'hover:bg-gray-800 text-gray-300'
+                                    : 'hover:bg-gray-50 text-gray-700'
                                     }`}
                             >
                                 <div className="p-3 rounded-full bg-gradient-to-br from-pink-500 to-orange-500">
