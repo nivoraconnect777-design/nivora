@@ -33,7 +33,7 @@ export default function CreateMenu({ isOpen, onClose }: CreateMenuProps) {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
                     />
 
                     {/* Menu */}
@@ -42,9 +42,13 @@ export default function CreateMenu({ isOpen, onClose }: CreateMenuProps) {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -20 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw] z-50 rounded-2xl shadow-2xl ${isDark ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-200'
+                        className={`fixed w-80 max-w-[90vw] z-[101] rounded-2xl shadow-2xl ${isDark ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-200'
                             }`}
-                        style={{ marginLeft: 0, marginRight: 0 }}
+                        style={{
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)'
+                        }}
                     >
                         {/* Header */}
                         <div className={`p-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
