@@ -3,14 +3,18 @@ import { useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import CreatePostModal from '../common/CreatePostModal';
+import CreateMenu from '../common/CreateMenu';
+import CreateStoryModal from '../stories/CreateStoryModal';
 import PageTransition from './PageTransition';
 import { useThemeStore } from '../../stores/themeStore';
 import { useAuthStore } from '../../stores/authStore';
+import { useUIStore } from '../../stores/uiStore';
 import api from '../../lib/api';
 
 export default function AppLayout() {
   const { isDark } = useThemeStore();
   const { isAuthenticated } = useAuthStore();
+  const { isCreateMenuOpen, closeCreateMenu, isCreateStoryModalOpen, closeCreateStoryModal } = useUIStore();
 
   useEffect(() => {
     if (isDark) {
@@ -40,6 +44,8 @@ export default function AppLayout() {
         </PageTransition>
       </main>
       <CreatePostModal />
+      <CreateMenu isOpen={isCreateMenuOpen} onClose={closeCreateMenu} />
+      <CreateStoryModal isOpen={isCreateStoryModalOpen} onClose={closeCreateStoryModal} />
     </div>
   );
 }

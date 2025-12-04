@@ -45,7 +45,7 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={() => useUIStore.getState().openCreatePostModal()}
+              onClick={() => useUIStore.getState().openCreateMenu()}
               className={`p-2 rounded-full ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
             >
               <PlusSquare className="w-6 h-6" />

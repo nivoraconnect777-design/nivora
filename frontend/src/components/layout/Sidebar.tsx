@@ -18,7 +18,7 @@ export default function Sidebar() {
   const location = useLocation();
   const { isAuthenticated, user } = useAuthStore();
   const { isDark } = useThemeStore();
-  const { openCreatePostModal } = useUIStore();
+  const { openCreateMenu } = useUIStore();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -91,8 +91,8 @@ export default function Sidebar() {
         />
 
         <button
-          id="create-post-trigger"
-          onClick={openCreatePostModal}
+          id="create-trigger"
+          onClick={openCreateMenu}
           className={`w-full mt-4 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isDark
             ? 'text-gray-400 hover:text-white hover:bg-gray-800'
             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'

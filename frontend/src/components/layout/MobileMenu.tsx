@@ -121,7 +121,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                             >
                                 <button
                                     onClick={() => {
-                                        useUIStore.getState().openCreatePostModal();
+                                        useUIStore.getState().openCreateMenu();
                                         onClose();
                                     }}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isDark
@@ -132,7 +132,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                     <div className="p-1 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
                                         <PlusSquare className="w-5 h-5 text-white" />
                                     </div>
-                                    <span className="font-medium">Create Post</span>
+                                    <span className="font-medium">Create</span>
                                 </button>
                             </motion.div>
                             {menuItems.map((item, index) => (

@@ -256,7 +256,7 @@ export default function ChatPage() {
             {activeChannel ? (
                 <div className="flex-1 flex flex-col w-full md:w-auto">
                     {/* Chat Header */}
-                    <div className={`p-4 border-b ${isDark ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'} flex items-center gap-3`}>
+                    <div className={`fixed md:relative top-0 left-0 right-0 z-50 p-4 border-b ${isDark ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'} flex items-center gap-3`}>
                         <button
                             onClick={() => setActiveChannel(null)}
                             className={`md:hidden p-2 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
@@ -292,7 +292,7 @@ export default function ChatPage() {
                     </div>
 
                     {/* Messages */}
-                    <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                    <div className={`flex-1 overflow-y-auto p-4 pt-20 md:pt-4 space-y-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                         {messages.map((message) => {
                             const isOwn = message.user?.id === user?.id;
                             const otherUser = getOtherMember(activeChannel);

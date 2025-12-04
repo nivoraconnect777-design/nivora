@@ -5,6 +5,7 @@ interface UIState {
   isCreatePostModalOpen: boolean;
   isCreateReelModalOpen: boolean;
   isCreateStoryModalOpen: boolean;
+  isCreateMenuOpen: boolean;
   toggleMobileMenu: () => void;
   openCreatePostModal: () => void;
   closeCreatePostModal: () => void;
@@ -12,6 +13,8 @@ interface UIState {
   closeCreateReelModal: () => void;
   openCreateStoryModal: () => void;
   closeCreateStoryModal: () => void;
+  openCreateMenu: () => void;
+  closeCreateMenu: () => void;
   feedRefreshTrigger: number;
   triggerFeedRefresh: () => void;
 }
@@ -21,6 +24,7 @@ export const useUIStore = create<UIState>((set) => ({
   isCreatePostModalOpen: false,
   isCreateReelModalOpen: false,
   isCreateStoryModalOpen: false,
+  isCreateMenuOpen: false,
 
   toggleMobileMenu: () =>
     set((state) => ({ isMobileMenuOpen: !state.isMobileMenuOpen })),
@@ -33,6 +37,9 @@ export const useUIStore = create<UIState>((set) => ({
 
   openCreateStoryModal: () => set({ isCreateStoryModalOpen: true }),
   closeCreateStoryModal: () => set({ isCreateStoryModalOpen: false }),
+
+  openCreateMenu: () => set({ isCreateMenuOpen: true }),
+  closeCreateMenu: () => set({ isCreateMenuOpen: false }),
 
   feedRefreshTrigger: 0,
   triggerFeedRefresh: () => set((state) => ({ feedRefreshTrigger: state.feedRefreshTrigger + 1 })),
