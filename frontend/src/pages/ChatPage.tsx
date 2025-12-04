@@ -295,19 +295,35 @@ export default function ChatPage() {
                     <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
                         {messages.map((message) => {
                             const isOwn = message.user?.id === user?.id;
+                            const otherUser = getOtherMember(activeChannel);
                             return (
-                                <div key={message.id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
-                                    <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl ${isOwn
-                                        ? 'bg-blue-500 text-white'
-                                        : isDark
-                                            ? 'bg-gray-800 text-white'
-                                            : 'bg-white text-gray-900'
-                                        }`}>
-                                        <p className="break-words">{message.text}</p>
+                                <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} gap-2`}>
+                                    {/* Profile Picture for other person's messages */}
+                                    {!isOwn && (
+                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-500 flex-shrink-0">
+                                            {otherUser?.image ? (
+                                                <img src={otherUser.image} alt={otherUser.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm">
+                                                    {otherUser?.name?.[0]?.toUpperCase()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                                        <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl ${isOwn
+                                            ? 'bg-blue-500 text-white'
+                                            : isDark
+                                                ? 'bg-gray-800 text-white'
+                                                : 'bg-white text-gray-900'
+                                            }`}>
+                                            <p className="break-words">{message.text}</p>
+                                        </div>
+                                        <span className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            {formatTime(message.created_at)}
+                                        </span>
                                     </div>
-                                    <span className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                        {formatTime(message.created_at)}
-                                    </span>
                                 </div>
                             );
                         })}
@@ -347,7 +363,8 @@ export default function ChatPage() {
                         </p>
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
