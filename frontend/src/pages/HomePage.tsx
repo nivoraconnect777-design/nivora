@@ -5,6 +5,7 @@ import { useThemeStore } from '../stores/themeStore';
 import { useAuthStore } from '../stores/authStore';
 import { useUIStore } from '../stores/uiStore';
 import { Users, Loader2 } from 'lucide-react';
+import StoryTray from '../components/stories/StoryTray';
 import PostCard from '../components/common/PostCard';
 import { Post } from '../types/post';
 import api from '../lib/api';
@@ -86,7 +87,12 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-full mx-auto px-4 py-8 md:max-w-2xl">
+    <div className="max-w-full mx-auto px-0 md:px-4 py-20 md:py-8 md:max-w-2xl">
+      {/* Mobile Story Tray */}
+      <div className="md:hidden mb-6 px-4">
+        <StoryTray isDark={isDark} />
+      </div>
+
       {/* Posts Feed */}
       {isLoading ? (
         <div className="flex justify-center items-center py-16">

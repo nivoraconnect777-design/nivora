@@ -104,21 +104,21 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
 
             {/* Media */}
             <div
-                className="relative bg-gray-100 dark:bg-gray-900 max-h-[600px] overflow-hidden cursor-pointer"
+                className="relative bg-gray-100 dark:bg-gray-900 overflow-hidden cursor-pointer"
                 onDoubleClick={handleDoubleClick}
             >
                 {post.mediaType === 'video' ? (
                     <video
                         src={post.mediaUrl}
                         controls
-                        className="w-full h-full object-contain mx-auto"
+                        className="w-full h-auto max-h-[80vh] object-contain mx-auto"
                         poster={post.thumbnailUrl || undefined}
                     />
                 ) : (
                     <img
                         src={post.mediaUrl}
                         alt={post.caption || 'Post content'}
-                        className="w-full h-full object-contain mx-auto"
+                        className="w-full h-auto object-cover"
                     />
                 )}
 

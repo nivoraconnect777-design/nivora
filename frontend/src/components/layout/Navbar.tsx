@@ -26,6 +26,32 @@ export default function Navbar() {
 
   return (
     <>
+      {/* Mobile Top Bar - Logo */}
+      {isAuthenticated && (
+        <nav
+          className={`md:hidden fixed top-0 left-0 right-0 z-40 backdrop-blur-xl border-b px-4 h-16 flex items-center justify-between ${isDark ? 'bg-gray-900/95 border-gray-800' : 'bg-white/95 border-gray-200'
+            }`}
+        >
+          <Link to="/" className="flex items-center gap-2">
+            <span
+              className={`text-xl font-bold bg-gradient-to-r ${isDark ? 'from-blue-400 to-purple-400' : 'from-blue-600 to-purple-600'
+                } bg-clip-text text-transparent`}
+            >
+              Nivora
+            </span>
+          </Link>
+
+          {/* Mobile Theme Toggle */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleTheme}
+            className={`p-2 rounded-full ${isDark ? 'text-yellow-400' : 'text-gray-600'}`}
+          >
+            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </motion.button>
+        </nav>
+      )}
+
       {/* Desktop Top Bar - Search and Actions */}
       {isAuthenticated && isHomePage && (
         <nav
@@ -118,9 +144,10 @@ interface MobileNavLinkProps {
   icon: React.ElementType;
   active: boolean;
   isDark: boolean;
+  label: string;
 }
 
-function MobileNavLink({ to, icon: Icon, active, isDark }: MobileNavLinkProps) {
+function MobileNavLink({ to, icon: Icon, active, isDark, label }: MobileNavLinkProps) {
   return (
     <Link to={to} className="flex-1">
       <motion.div
