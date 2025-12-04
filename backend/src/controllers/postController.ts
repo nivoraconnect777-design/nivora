@@ -36,15 +36,20 @@ export const createPost = async (req: AuthRequest, res: Response) => {
 
         // Invalidate feed caches if Redis is available
         if (redis) {
-            const keys = await redis.keys('feed:*');
-            if (keys.length > 0) {
-                await redis.del(...keys);
-            }
+            try {
+                const keys = await redis.keys('feed:*');
+                if (keys.length > 0) {
+                    await redis.del(...keys);
+                }
 
-            // Invalidate explore cache
-            const exploreKeys = await redis.keys('explore:*');
-            if (exploreKeys.length > 0) {
-                await redis.del(...exploreKeys);
+                // Invalidate explore cache
+                const exploreKeys = await redis.keys('explore:*');
+                if (exploreKeys.length > 0) {
+                    await redis.del(...exploreKeys);
+                }
+            } catch (redisError) {
+                console.error('Redis error in createPost:', redisError);
+                // Continue without caching
             }
         }
 
@@ -63,11 +68,16 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
 
         // Try to get from cache if Redis is available
         if (redis) {
-            const cacheKey = `feed:${page}:${limit}`;
-            const cachedPosts = await redis.get(cacheKey);
+            try {
+                const cacheKey = `feed:${page}:${limit}`;
+                const cachedPosts = await redis.get(cacheKey);
 
-            if (cachedPosts) {
-                return res.status(200).json({ success: true, posts: cachedPosts });
+                if (cachedPosts) {
+                    return res.status(200).json({ success: true, posts: cachedPosts });
+                }
+            } catch (redisError) {
+                console.error('Redis error in getPosts (read):', redisError);
+                // Fallback to DB
             }
         }
 
@@ -114,8 +124,13 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
 
         // Cache the result if Redis is available
         if (redis) {
-            const cacheKey = `feed:${page}:${limit}`;
-            await redis.set(cacheKey, JSON.stringify(transformedPosts), { ex: CACHE_TTL.FEED });
+            try {
+                const cacheKey = `feed:${page}:${limit}`;
+                await redis.set(cacheKey, JSON.stringify(transformedPosts), { ex: CACHE_TTL.FEED });
+            } catch (redisError) {
+                console.error('Redis error in getPosts (write):', redisError);
+                // Continue without caching
+            }
         }
 
         res.status(200).json({ success: true, posts: transformedPosts });
@@ -131,11 +146,16 @@ export const getPostById = async (req: AuthRequest, res: Response) => {
 
         // Try to get from cache if Redis is available
         if (redis) {
-            const cacheKey = `post:${id}`;
-            const cachedPost = await redis.get(cacheKey);
+            try {
+                const cacheKey = `post:${id}`;
+                const cachedPost = await redis.get(cacheKey);
 
-            if (cachedPost) {
-                return res.status(200).json({ success: true, post: cachedPost });
+                if (cachedPost) {
+                    return res.status(200).json({ success: true, post: cachedPost });
+                }
+            } catch (redisError) {
+                console.error('Redis error in getPostById (read):', redisError);
+                // Fallback to DB
             }
         }
 
@@ -181,8 +201,13 @@ export const getPostById = async (req: AuthRequest, res: Response) => {
 
         // Cache the result if Redis is available
         if (redis) {
-            const cacheKey = `post:${id}`;
-            await redis.set(cacheKey, JSON.stringify(transformedPost), { ex: CACHE_TTL.POST });
+            try {
+                const cacheKey = `post:${id}`;
+                await redis.set(cacheKey, JSON.stringify(transformedPost), { ex: CACHE_TTL.POST });
+            } catch (redisError) {
+                console.error('Redis error in getPostById (write):', redisError);
+                // Continue without caching
+            }
         }
 
         res.status(200).json({ success: true, post: transformedPost });
@@ -215,16 +240,21 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
 
         // Invalidate caches if Redis is available
         if (redis) {
-            await redis.del(`post:${id}`);
+            try {
+                await redis.del(`post:${id}`);
 
-            const keys = await redis.keys('feed:*');
-            if (keys.length > 0) {
-                await redis.del(...keys);
-            }
+                const keys = await redis.keys('feed:*');
+                if (keys.length > 0) {
+                    await redis.del(...keys);
+                }
 
-            const exploreKeys = await redis.keys('explore:*');
-            if (exploreKeys.length > 0) {
-                await redis.del(...exploreKeys);
+                const exploreKeys = await redis.keys('explore:*');
+                if (exploreKeys.length > 0) {
+                    await redis.del(...exploreKeys);
+                }
+            } catch (redisError) {
+                console.error('Redis error in deletePost:', redisError);
+                // Continue
             }
         }
 
@@ -262,16 +292,21 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
 
             // Invalidate caches if Redis is available
             if (redis) {
-                await redis.del(`post:${id}`);
+                try {
+                    await redis.del(`post:${id}`);
 
-                const keys = await redis.keys('feed:*');
-                if (keys.length > 0) {
-                    await redis.del(...keys);
-                }
+                    const keys = await redis.keys('feed:*');
+                    if (keys.length > 0) {
+                        await redis.del(...keys);
+                    }
 
-                const exploreKeys = await redis.keys('explore:*');
-                if (exploreKeys.length > 0) {
-                    await redis.del(...exploreKeys);
+                    const exploreKeys = await redis.keys('explore:*');
+                    if (exploreKeys.length > 0) {
+                        await redis.del(...exploreKeys);
+                    }
+                } catch (redisError) {
+                    console.error('Redis error in toggleLike (unlike):', redisError);
+                    // Continue
                 }
             }
 
@@ -299,16 +334,21 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
 
             // Invalidate caches if Redis is available
             if (redis) {
-                await redis.del(`post:${id}`);
+                try {
+                    await redis.del(`post:${id}`);
 
-                const keys = await redis.keys('feed:*');
-                if (keys.length > 0) {
-                    await redis.del(...keys);
-                }
+                    const keys = await redis.keys('feed:*');
+                    if (keys.length > 0) {
+                        await redis.del(...keys);
+                    }
 
-                const exploreKeys = await redis.keys('explore:*');
-                if (exploreKeys.length > 0) {
-                    await redis.del(...exploreKeys);
+                    const exploreKeys = await redis.keys('explore:*');
+                    if (exploreKeys.length > 0) {
+                        await redis.del(...exploreKeys);
+                    }
+                } catch (redisError) {
+                    console.error('Redis error in toggleLike (like):', redisError);
+                    // Continue
                 }
             }
 
@@ -382,16 +422,21 @@ export const addComment = async (req: AuthRequest, res: Response) => {
 
         // Invalidate caches if Redis is available
         if (redis) {
-            await redis.del(`post:${id}`);
+            try {
+                await redis.del(`post:${id}`);
 
-            const keys = await redis.keys('feed:*');
-            if (keys.length > 0) {
-                await redis.del(...keys);
-            }
+                const keys = await redis.keys('feed:*');
+                if (keys.length > 0) {
+                    await redis.del(...keys);
+                }
 
-            const exploreKeys = await redis.keys('explore:*');
-            if (exploreKeys.length > 0) {
-                await redis.del(...exploreKeys);
+                const exploreKeys = await redis.keys('explore:*');
+                if (exploreKeys.length > 0) {
+                    await redis.del(...exploreKeys);
+                }
+            } catch (redisError) {
+                console.error('Redis error in addComment:', redisError);
+                // Continue
             }
         }
 
