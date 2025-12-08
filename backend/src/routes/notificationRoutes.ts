@@ -1,10 +1,11 @@
 import express from 'express';
-import { getNotifications, markAsRead } from '../controllers/notificationController';
+import { getNotifications, markAsRead, getUnreadCount } from '../controllers/notificationController';
 import { authenticate } from '../middleware/auth';
 
 const router = express.Router();
 
 router.get('/', authenticate, getNotifications);
+router.get('/unread-count', authenticate, getUnreadCount);
 router.put('/read', authenticate, markAsRead);
 
 export default router;
