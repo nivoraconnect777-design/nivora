@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut, Menu, PlusSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut, Menu, PlusSquare, Heart } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useNotificationStore } from '../../stores/notificationStore';
 import toast from 'react-hot-toast';
 import StoryTray from '../stories/StoryTray';
 import MobileMenu from './MobileMenu';
@@ -14,7 +15,29 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const { unreadCount, lastNotification, fetchUnreadCount, clearLastNotification } = useNotificationStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUnreadCount();
+      // Optional: Poll for notifications if no socket
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, fetchUnreadCount]);
+
+  useEffect(() => {
+    if (lastNotification) {
+      setShowPopup(true);
+      const timer = setTimeout(() => {
+        setShowPopup(false);
+        clearLastNotification();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [lastNotification, clearLastNotification]);
 
   const handleLogout = () => {
     logout();
@@ -42,21 +65,45 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Notification Icon */}
+            <Link to="/notifications" className="relative p-2">
+              <Heart className={`w-6 h-6 ${isDark ? 'text-gray-200' : 'text-gray-800'}`} />
+              {unreadCount > 0 && (
+                <div className="absolute top-2 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" />
+              )}
+
+              {/* Notification Pop-up */}
+              <AnimatePresence>
+                {showPopup && lastNotification && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    className="absolute -bottom-8 left-1/2 -translate-x-1/2 p-1.5 rounded-full bg-red-500 shadow-lg"
+                  >
+                    {lastNotification.type === 'like' ? (
+                      <Heart className="w-4 h-4 text-white fill-current" />
+                    ) : (
+                      <MessageCircle className="w-4 h-4 text-white fill-current" />
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Link>
+
+            {/* Message Icon */}
+            <Link to="/messages" className="p-2">
+              <MessageCircle className={`w-6 h-6 ${isDark ? 'text-gray-200' : 'text-gray-800'}`} />
+            </Link>
+
+            {/* Create Button */}
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => useUIStore.getState().openCreateMenu()}
-              className={`p-2 rounded-full ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
+              className={`p-2 rounded-full ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
             >
               <PlusSquare className="w-6 h-6" />
-            </motion.button>
-
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleTheme}
-              className={`p-2 rounded-full ${isDark ? 'text-yellow-400' : 'text-gray-600'}`}
-            >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </motion.button>
           </div>
         </nav>
@@ -123,7 +170,6 @@ export default function Navbar() {
             <MobileNavLink to="/home" icon={Home} active={isActive('/home')} isDark={isDark} label="Home" />
             <MobileNavLink to="/search" icon={Search} active={isActive('/search')} isDark={isDark} label="Search" />
             <MobileNavLink to="/reels" icon={Film} active={isActive('/reels')} isDark={isDark} label="Reels" />
-            <MobileNavLink to="/messages" icon={MessageCircle} active={isActive('/messages')} isDark={isDark} label="Messages" />
             <MobileNavLink to={`/profile/${useAuthStore.getState().user?.username || ''}`} icon={User} active={location.pathname.startsWith('/profile')} isDark={isDark} label="Profile" />
 
             {/* Hamburger Menu Button */}
