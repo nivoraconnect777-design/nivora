@@ -9,6 +9,8 @@ import {
     addComment,
     getComments,
     updatePost,
+    toggleSave,
+    getSavedPosts,
 } from '../controllers/postController';
 import { toggleCommentLike } from '../controllers/commentController';
 
@@ -19,9 +21,11 @@ router.use(authenticate as RequestHandler);
 
 router.post('/', createPost as RequestHandler);
 router.get('/', getPosts as RequestHandler);
+router.get('/saved', getSavedPosts as RequestHandler); // Must be before /:id
 router.get('/:id', getPostById as RequestHandler);
 router.delete('/:id', deletePost as RequestHandler);
 router.post('/:id/like', toggleLike as RequestHandler);
+router.post('/:id/save', toggleSave as RequestHandler);
 router.post('/:id/comments', addComment as RequestHandler);
 router.get('/:id/comments', getComments as RequestHandler);
 router.post('/comments/:commentId/like', toggleCommentLike as RequestHandler);

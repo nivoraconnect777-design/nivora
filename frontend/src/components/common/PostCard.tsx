@@ -20,7 +20,7 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
     const { user } = useAuthStore();
     const isOwner = user?.id === post.userId;
     const [showHeart, setShowHeart] = useState(false);
-    const [isSaved, setIsSaved] = useState(false);
+    const [isSaved, setIsSaved] = useState(post.isSaved || false);
     const [showComments, setShowComments] = useState(false);
 
     // Menu & Action States
@@ -88,9 +88,15 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
         }
     };
 
-    const toggleSave = () => {
-        setIsSaved(!isSaved);
-        toast.success(isSaved ? 'Post unsaved' : 'Post saved');
+    const toggleSave = async () => {
+        try {
+            await api.post(`/api/posts/${post.id}/save`);
+            setIsSaved(!isSaved);
+            toast.success(isSaved ? 'Post unsaved' : 'Post saved');
+        } catch (error) {
+            console.error('Error toggling save:', error);
+            toast.error('Failed to update save status');
+        }
     };
 
     const toggleComments = () => {

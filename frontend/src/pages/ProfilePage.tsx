@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('posts');
 
   // If no username in URL, show current user's profile
   const profileUsername = username || currentUser?.username;
@@ -37,13 +38,23 @@ export default function ProfilePage() {
     enabled: !!profileUsername,
   });
 
+  // Fetch saved posts (only if own profile and saved tab active)
+  const { data: savedPostsData, isLoading: isLoadingSaved } = useQuery({
+    queryKey: ['saved-posts'],
+    queryFn: async () => {
+      const response = await api.get('/api/posts/saved');
+      return response.data.posts;
+    },
+    enabled: isOwnProfile && activeTab === 'saved',
+  });
+
   const profileUser = data;
 
   const tabs = [
     { id: 'posts', label: 'Posts', icon: Grid },
     { id: 'reels', label: 'Reels', icon: Film },
-    { id: 'saved', label: 'Saved', icon: Bookmark },
-  ];
+    { id: 'saved', label: 'Saved', icon: Bookmark, hidden: !isOwnProfile },
+  ].filter(tab => !tab.hidden);
 
   if (isLoading) {
     return (
@@ -205,7 +216,7 @@ export default function ProfilePage() {
               key={tab.id}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`flex items-center gap-2 font-semibold transition-colors ${tab.id === 'posts'
+              className={`flex items-center gap-2 font-semibold transition-colors ${activeTab === tab.id
                 ? isDark
                   ? 'text-white border-t-2 border-white -mt-[1px]'
                   : 'text-gray-900 border-t-2 border-gray-900 -mt-[1px]'
@@ -213,6 +224,7 @@ export default function ProfilePage() {
                   ? 'text-gray-500 hover:text-gray-300'
                   : 'text-gray-500 hover:text-gray-700'
                 }`}
+              onClick={() => setActiveTab(tab.id)}
             >
               <tab.icon className="w-5 h-5" />
               <span className="hidden md:inline">{tab.label}</span>
@@ -222,7 +234,55 @@ export default function ProfilePage() {
       </div>
 
       {/* Posts Grid or Empty State */}
-      {profileUser?.posts && profileUser.posts.length > 0 ? (
+      {activeTab === 'saved' ? (
+        isLoadingSaved ? (
+          <div className="flex justify-center p-12">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        ) : savedPostsData && savedPostsData.length > 0 ? (
+          <div className="grid grid-cols-3 gap-1 md:gap-4">
+            {savedPostsData.map((post: any) => (
+              <motion.div
+                key={post.id}
+                layoutId={post.id}
+                whileHover={{ scale: 1.02 }}
+                className="relative aspect-square group cursor-pointer overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800"
+                onClick={() => navigate(`/post/${post.id}`)}
+              >
+                {post.mediaType === 'video' ? (
+                  <video
+                    src={post.mediaUrl}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={post.mediaUrl}
+                    alt={post.caption}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">❤️</span>
+                    <span>{post.likesCount}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">💬</span>
+                    <span>{post.commentsCount}</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <Bookmark className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+            <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No saved posts</h2>
+            <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Posts you save will appear here.</p>
+          </div>
+        )
+      ) : profileUser?.posts && profileUser.posts.length > 0 ? (
         <div className="grid grid-cols-3 gap-1 md:gap-4">
           {profileUser.posts.map((post: any) => (
             <motion.div

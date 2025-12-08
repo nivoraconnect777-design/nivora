@@ -208,16 +208,26 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
                         userId: true,
                     },
                 },
+                savedBy: {
+                    where: {
+                        userId: req.user?.id,
+                    },
+                    select: {
+                        userId: true,
+                    },
+                },
             },
         });
 
-        // Transform data to include isLiked boolean
+        // Transform data to include isLiked and isSaved boolean
         const transformedPosts = posts.map((post) => ({
             ...post,
             isLiked: post.likes.length > 0,
+            isSaved: post.savedBy.length > 0,
             likesCount: post._count.likes,
             commentsCount: post._count.comments,
             likes: undefined, // Remove the likes array from response
+            savedBy: undefined, // Remove savedBy array
             _count: undefined, // Remove _count from response
         }));
 
@@ -284,6 +294,14 @@ export const getPostById = async (req: AuthRequest, res: Response) => {
                         userId: true,
                     },
                 },
+                savedBy: {
+                    where: {
+                        userId: req.user?.id,
+                    },
+                    select: {
+                        userId: true,
+                    },
+                },
             },
         });
 
@@ -294,9 +312,11 @@ export const getPostById = async (req: AuthRequest, res: Response) => {
         const transformedPost = {
             ...post,
             isLiked: post.likes.length > 0,
+            isSaved: post.savedBy.length > 0,
             likesCount: post._count.likes,
             commentsCount: post._count.comments,
             likes: undefined,
+            savedBy: undefined,
             _count: undefined,
         };
 
@@ -363,6 +383,109 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
     } catch (error) {
         console.error('Delete post error:', error);
         res.status(500).json({ success: false, message: 'Error deleting post' });
+    }
+};
+
+export const toggleSave = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const existingSave = await prisma.savedPost.findUnique({
+            where: {
+                userId_postId: {
+                    userId,
+                    postId: id,
+                },
+            },
+        });
+
+        if (existingSave) {
+            await prisma.savedPost.delete({
+                where: {
+                    id: existingSave.id,
+                },
+            });
+            res.status(200).json({ success: true, isSaved: false });
+        } else {
+            await prisma.savedPost.create({
+                data: {
+                    userId,
+                    postId: id,
+                },
+            });
+            res.status(200).json({ success: true, isSaved: true });
+        }
+    } catch (error) {
+        console.error('Toggle save error:', error);
+        res.status(500).json({ success: false, message: 'Error toggling save' });
+    }
+};
+
+export const getSavedPosts = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const savedPosts = await prisma.savedPost.findMany({
+            where: { userId },
+            take: limit,
+            skip: skip,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                post: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                profilePicUrl: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                likes: true,
+                                comments: true,
+                            },
+                        },
+                        likes: {
+                            where: { userId },
+                            select: { userId: true },
+                        },
+                        savedBy: {
+                            where: { userId },
+                            select: { userId: true },
+                        },
+                    },
+                },
+            },
+        });
+
+        const transformedPosts = savedPosts.map((saved) => ({
+            ...saved.post,
+            isLiked: saved.post.likes.length > 0,
+            isSaved: true,
+            likesCount: saved.post._count.likes,
+            commentsCount: saved.post._count.comments,
+            likes: undefined,
+            savedBy: undefined,
+            _count: undefined,
+        }));
+
+        res.status(200).json({ success: true, posts: transformedPosts });
+    } catch (error) {
+        console.error('Get saved posts error:', error);
+        res.status(500).json({ success: false, message: 'Error fetching saved posts' });
     }
 };
 

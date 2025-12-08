@@ -34,6 +34,7 @@ model User {
   comments      Comment[]
   likes         Like[]
   commentLikes  CommentLike[]
+  savedPosts    SavedPost[]
 
   followers     Follow[] @relation("UserFollowers")
   following     Follow[] @relation("UserFollowing")
@@ -63,6 +64,7 @@ model Post {
 
   likes    Like[]
   comments Comment[]
+  savedBy  SavedPost[]
 
   @@index([userId])
   @@index([createdAt])
@@ -236,4 +238,17 @@ model Notification {
 
   @@index([recipientId])
   @@index([createdAt])
+}
+
+model SavedPost {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
 }
