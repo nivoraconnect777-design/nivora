@@ -14,9 +14,9 @@ interface CreateStoryModalProps {
 interface TextOverlay {
     id: string;
     text: string;
-    x: number;
-    y: number;
-    fontSize: number;
+    xPct: number; // Percentage 0-100
+    yPct: number; // Percentage 0-100
+    fontSizePct: number; // Percentage of container width (e.g., 5 = 5%)
     color: string;
 }
 
@@ -41,6 +41,7 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
     const [newText, setNewText] = useState('');
 
     const imageRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,9 +111,9 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
         const newOverlay: TextOverlay = {
             id: Date.now().toString(),
             text: newText,
-            x: window.innerWidth / 2 - 100,
-            y: window.innerHeight / 2 - 20,
-            fontSize: 32,
+            xPct: 50,
+            yPct: 50,
+            fontSizePct: 8, // Default ~8% of screen width
             color: '#FFFFFF'
         };
         setTextOverlays([...textOverlays, newOverlay]);
@@ -123,20 +124,28 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
 
     const handleTextDrag = (id: string, e: React.MouseEvent | React.TouchEvent) => {
         e.stopPropagation();
+        if (!containerRef.current) return;
+
+        const containerRect = containerRef.current.getBoundingClientRect();
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
         const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
+        // Calculate percentage position
+        // Clamp between 0 and 100
+        const xPct = Math.min(100, Math.max(0, ((clientX - containerRect.left) / containerRect.width) * 100));
+        const yPct = Math.min(100, Math.max(0, ((clientY - containerRect.top) / containerRect.height) * 100));
+
         setTextOverlays(prev => prev.map(overlay =>
             overlay.id === id
-                ? { ...overlay, x: clientX - 50, y: clientY - 20 }
+                ? { ...overlay, xPct, yPct }
                 : overlay
         ));
     };
 
-    const handleTextResize = (id: string, delta: number) => {
+    const handleTextSizeChange = (id: string, newSizePct: number) => {
         setTextOverlays(prev => prev.map(overlay =>
             overlay.id === id
-                ? { ...overlay, fontSize: Math.max(16, Math.min(64, overlay.fontSize + delta)) }
+                ? { ...overlay, fontSizePct: newSizePct }
                 : overlay
         ));
     };
@@ -224,10 +233,28 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
 
                 // Draw text overlays
                 textOverlays.forEach(overlay => {
-                    ctx.font = `bold ${overlay.fontSize}px Arial`;
+                    const fontSize = (canvas.width * overlay.fontSizePct) / 100;
+                    const x = (canvas.width * overlay.xPct) / 100;
+                    const y = (canvas.height * overlay.yPct) / 100;
+
+                    ctx.font = `bold ${fontSize}px Arial`;
                     ctx.fillStyle = overlay.color;
                     ctx.textAlign = 'center';
-                    ctx.fillText(overlay.text, overlay.x, overlay.y);
+                    ctx.textBaseline = 'middle';
+
+                    // Add simple shadow for better visibility
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 2;
+                    ctx.shadowOffsetY = 2;
+
+                    ctx.fillText(overlay.text, x, y);
+
+                    // Reset shadow
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
                 });
 
                 canvas.toBlob((blob) => {
@@ -363,7 +390,9 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
                         </div>
                     ) : (
                         <div
-                            className="relative w-full h-full flex items-center justify-center overflow-hidden"
+                            ref={containerRef}
+                            className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black"
+                            style={{ containerType: 'size' }}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
@@ -410,21 +439,43 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
                                     onClick={() => setActiveTextId(overlay.id)}
                                     style={{
                                         position: 'absolute',
-                                        left: overlay.x,
-                                        top: overlay.y,
-                                        fontSize: overlay.fontSize,
+                                        left: `${overlay.xPct}%`,
+                                        top: `${overlay.yPct}%`,
+                                        transform: 'translate(-50%, -50%)',
+                                        fontSize: `${overlay.fontSizePct}cqw`, // Container Query Width relative units
                                         color: overlay.color,
                                         cursor: 'move',
                                         userSelect: 'none',
                                         textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
                                         border: activeTextId === overlay.id ? '2px dashed white' : 'none',
-                                        padding: '4px 8px'
+                                        padding: '4px 8px',
+                                        whiteSpace: 'nowrap',
+                                        zIndex: 20
                                     }}
                                     className="font-bold"
                                 >
                                     {overlay.text}
                                 </div>
                             ))}
+
+                            {/* Text Size Slider (Visible when text is active) */}
+                            {activeTextId && (
+                                <div className="absolute left-4 right-4 bottom-28 z-30 bg-black/50 p-4 rounded-lg backdrop-blur-sm">
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-white text-xs font-bold">A-</span>
+                                        <input
+                                            type="range"
+                                            min="2"
+                                            max="20"
+                                            step="0.5"
+                                            value={textOverlays.find(t => t.id === activeTextId)?.fontSizePct || 8}
+                                            onChange={(e) => handleTextSizeChange(activeTextId, parseFloat(e.target.value))}
+                                            className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-white"
+                                        />
+                                        <span className="text-white text-lg font-bold">A+</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -432,7 +483,6 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
                     {previewUrl && (
                         <div className="absolute bottom-0 left-0 right-0 z-10 p-4 bg-gradient-to-t from-black/60 to-transparent">
                             <div className="flex items-center justify-between mb-4">
-                                {/* Zoom Controls */}
                                 {mediaType === 'image' && (
                                     <div className="flex items-center gap-2">
                                         <button
@@ -511,7 +561,7 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
                     )}
                 </motion.div>
             </motion.div>
-        </AnimatePresence>
+        </AnimatePresence >
     );
 
     return ReactDOM.createPortal(modalContent, document.body);

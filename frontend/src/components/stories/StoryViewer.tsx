@@ -262,16 +262,25 @@ export default function StoryViewer({ initialUserIndex, storyUsers, onClose, isD
                         <video
                             ref={videoRef}
                             src={currentStory.mediaUrl}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                             playsInline
                             muted // Auto-play usually requires muted initially
                         />
                     ) : (
-                        <img
-                            src={currentStory.mediaUrl}
-                            alt="Story"
-                            className="w-full h-full object-cover"
-                        />
+                        <>
+                            {/* Blurred background for ambience */}
+                            <img
+                                src={currentStory.mediaUrl}
+                                alt="Story Background"
+                                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-50 scale-110"
+                            />
+                            {/* Main image contained */}
+                            <img
+                                src={currentStory.mediaUrl}
+                                alt="Story"
+                                className="relative w-full h-full object-contain z-10"
+                            />
+                        </>
                     )}
                 </div>
 
