@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, MoreHorizontal, Send, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Send, Bookmark, Edit, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Post } from '../../types/post';
 import { useAuthStore } from '../../stores/authStore';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import InlineComments from '../post/InlineComments';
+import api from '../../lib/api';
+import EditPostModal from '../post/EditPostModal';
+import DeletePostDialog from '../post/DeletePostDialog';
 
 interface PostCardProps {
     post: Post;
@@ -19,6 +22,36 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
     const [showHeart, setShowHeart] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const [showComments, setShowComments] = useState(false);
+
+    // Menu & Action States
+    const [showMenu, setShowMenu] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Local state for caption to update immediately after edit
+    const [currentCaption, setCurrentCaption] = useState(post.caption);
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await api.delete(`/api/posts/${post.id}`);
+            toast.success('Post deleted');
+            if (onDelete) {
+                onDelete(post.id);
+            } else {
+                // If no parent handler, maybe reload or just hide? 
+                //Ideally query invalidation happens, but for now we rely on parent.
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            toast.error('Failed to delete post');
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteDialog(false);
+        }
+    };
 
     const handleDoubleClick = () => {
         if (!post.isLiked) {
@@ -93,12 +126,52 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
                 </div>
 
                 {isOwner && (
-                    <button
-                        onClick={() => onDelete?.(post.id)}
-                        className="text-gray-500 hover:text-red-500 transition-colors"
-                    >
-                        <MoreHorizontal className="w-5 h-5" />
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowMenu(!showMenu)}
+                            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors p-1"
+                        >
+                            <MoreHorizontal className="w-5 h-5" />
+                        </button>
+
+                        <AnimatePresence>
+                            {showMenu && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-10"
+                                        onClick={() => setShowMenu(false)}
+                                    />
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                        className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden z-20"
+                                    >
+                                        <button
+                                            onClick={() => {
+                                                setShowMenu(false);
+                                                setShowEditModal(true);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                            Edit Post
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowMenu(false);
+                                                setShowDeleteDialog(true);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Delete Post
+                                        </button>
+                                    </motion.div>
+                                </>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 )}
             </div>
 
@@ -188,12 +261,12 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
                 )}
 
                 {/* Caption */}
-                {post.caption && (
+                {currentCaption && (
                     <div className="mb-2">
                         <span className="font-semibold text-gray-900 dark:text-white mr-2">
                             {post.user.username}
                         </span>
-                        <span className="text-gray-700 dark:text-gray-300">{post.caption}</span>
+                        <span className="text-gray-700 dark:text-gray-300">{currentCaption}</span>
                     </div>
                 )}
 
@@ -214,6 +287,20 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
                     <InlineComments postId={post.id} isOpen={showComments} />
                 )}
             </AnimatePresence>
+
+            <EditPostModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                post={{ id: post.id, caption: currentCaption || '' }}
+                onUpdate={setCurrentCaption}
+            />
+
+            <DeletePostDialog
+                isOpen={showDeleteDialog}
+                onClose={() => setShowDeleteDialog(false)}
+                onConfirm={handleDelete}
+                isLoading={isDeleting}
+            />
         </div>
     );
 }

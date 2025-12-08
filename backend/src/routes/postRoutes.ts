@@ -8,6 +8,7 @@ import {
     toggleLike,
     addComment,
     getComments,
+    updatePost,
 } from '../controllers/postController';
 import { toggleCommentLike } from '../controllers/commentController';
 
@@ -24,5 +25,6 @@ router.post('/:id/like', toggleLike as RequestHandler);
 router.post('/:id/comments', addComment as RequestHandler);
 router.get('/:id/comments', getComments as RequestHandler);
 router.post('/comments/:commentId/like', toggleCommentLike as RequestHandler);
+router.put('/:id', updatePost as RequestHandler);
 
 export default router;

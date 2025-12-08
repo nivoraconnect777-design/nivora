@@ -20,6 +20,8 @@ export default function PostPage() {
         enabled: !!id,
     });
 
+    const userId = postData?.userId;
+
     // Fetch feed for "more posts"
     const {
         data: feedData,
@@ -27,15 +29,19 @@ export default function PostPage() {
         hasNextPage,
         isFetchingNextPage,
     } = useInfiniteQuery({
-        queryKey: ['posts', 'feed'],
+        queryKey: ['posts', 'feed', userId], // Include userId in query key
         queryFn: async ({ pageParam = 1 }) => {
-            const res = await api.get(`/api/posts?page=${pageParam}&limit=5`);
+            const url = userId
+                ? `/api/posts?page=${pageParam}&limit=5&userId=${userId}`
+                : `/api/posts?page=${pageParam}&limit=5`;
+            const res = await api.get(url);
             return res.data.posts;
         },
         getNextPageParam: (lastPage, allPages) => {
             return lastPage.length === 5 ? allPages.length + 1 : undefined;
         },
         initialPageParam: 1,
+        enabled: !!userId, // Only fetch when we know the userId
     });
 
     useEffect(() => {

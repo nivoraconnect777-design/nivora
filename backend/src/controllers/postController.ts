@@ -47,6 +47,13 @@ export const createPost = async (req: AuthRequest, res: Response) => {
                 if (exploreKeys.length > 0) {
                     await redis.del(...exploreKeys);
                 }
+
+                // Invalidate user specific cache
+                const userFeedKeys = await redis.keys(`feed:user:${userId}:*`);
+                if (userFeedKeys.length > 0) {
+                    await redis.del(...userFeedKeys);
+                }
+
             } catch (redisError) {
                 console.error('Redis error in createPost:', redisError);
                 // Continue without caching
@@ -60,16 +67,105 @@ export const createPost = async (req: AuthRequest, res: Response) => {
     }
 };
 
+export const updatePost = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { caption } = req.body;
+        const userId = req.user?.id;
+
+        const post = await prisma.post.findUnique({
+            where: { id },
+        });
+
+        if (!post) {
+            return res.status(404).json({ success: false, message: 'Post not found' });
+        }
+
+        if (post.userId !== userId) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const updatedPost = await prisma.post.update({
+            where: { id },
+            data: { caption },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        profilePicUrl: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        likes: true,
+                        comments: true,
+                    },
+                },
+                likes: {
+                    where: {
+                        userId: req.user?.id,
+                    },
+                    select: {
+                        userId: true,
+                    },
+                },
+            },
+        });
+
+        const transformedPost = {
+            ...updatedPost,
+            isLiked: updatedPost.likes.length > 0,
+            likesCount: updatedPost._count.likes,
+            commentsCount: updatedPost._count.comments,
+            likes: undefined,
+            _count: undefined,
+        };
+
+
+        // Invalidate caches if Redis is available
+        if (redis) {
+            try {
+                await redis.del(`post:${id}`);
+
+                const keys = await redis.keys('feed:*');
+                if (keys.length > 0) {
+                    await redis.del(...keys);
+                }
+
+                const exploreKeys = await redis.keys('explore:*');
+                if (exploreKeys.length > 0) {
+                    await redis.del(...exploreKeys);
+                }
+            } catch (redisError) {
+                console.error('Redis error in updatePost:', redisError);
+                // Continue
+            }
+        }
+
+        res.status(200).json({ success: true, post: transformedPost });
+    } catch (error) {
+        console.error('Update post error:', error);
+        res.status(500).json({ success: false, message: 'Error updating post' });
+    }
+};
+
 export const getPosts = async (req: AuthRequest, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
+        const userId = req.query.userId as string; // Optional user filter
+
         // Try to get from cache if Redis is available
         if (redis) {
             try {
-                const cacheKey = `feed:${page}:${limit}`;
+                // If filtering by user, use a different cache key structure
+                const cacheKey = userId
+                    ? `feed:user:${userId}:${page}:${limit}`
+                    : `feed:${page}:${limit}`;
+
                 const cachedPosts = await redis.get(cacheKey);
 
                 if (cachedPosts) {
@@ -81,7 +177,10 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
             }
         }
 
+        const whereClause = userId ? { userId } : {};
+
         const posts = await prisma.post.findMany({
+            where: whereClause,
             take: limit,
             skip: skip,
             orderBy: {
@@ -125,7 +224,9 @@ export const getPosts = async (req: AuthRequest, res: Response) => {
         // Cache the result if Redis is available
         if (redis) {
             try {
-                const cacheKey = `feed:${page}:${limit}`;
+                const cacheKey = userId
+                    ? `feed:user:${userId}:${page}:${limit}`
+                    : `feed:${page}:${limit}`;
                 await redis.set(cacheKey, JSON.stringify(transformedPosts), { ex: CACHE_TTL.FEED });
             } catch (redisError) {
                 console.error('Redis error in getPosts (write):', redisError);
