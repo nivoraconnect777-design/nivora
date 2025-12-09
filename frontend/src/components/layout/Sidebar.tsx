@@ -1,24 +1,49 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
   Search,
   Film,
   MessageCircle,
-  Bell,
   User,
   Sparkles,
   PlusSquare,
+  Heart,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useNotificationStore } from '../../stores/notificationStore';
+import { useEffect, useState } from 'react';
 
 export default function Sidebar() {
   const location = useLocation();
   const { isAuthenticated, user } = useAuthStore();
   const { isDark } = useThemeStore();
   const { openCreateMenu } = useUIStore();
+  const { unreadCount, lastNotification, notificationCounts, fetchUnreadCount, clearLastNotification } = useNotificationStore();
+
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUnreadCount();
+      // Optional: Poll for notifications if no socket
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, fetchUnreadCount]);
+
+  useEffect(() => {
+    if (lastNotification) {
+      setShowPopup(true);
+      const timer = setTimeout(() => {
+        setShowPopup(false);
+        clearLastNotification();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [lastNotification, clearLastNotification]);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -75,13 +100,59 @@ export default function Sidebar() {
           active={isActive('/messages')}
           isDark={isDark}
         />
-        <SidebarLink
-          to="/notifications"
-          icon={Bell}
-          label="Notifications"
-          active={isActive('/notifications')}
-          isDark={isDark}
-        />
+
+        {/* Custom Notification Link with Pop-up */}
+        <Link to="/notifications" className="relative block group">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive('/notifications')
+              ? isDark
+                ? 'bg-blue-500/20 text-blue-400'
+                : 'bg-blue-50 text-blue-600'
+              : isDark
+                ? 'text-gray-400 group-hover:text-white group-hover:bg-gray-800'
+                : 'text-gray-600 group-hover:text-gray-900 group-hover:bg-gray-100'
+              }`}
+          >
+            <div className="relative">
+              <Heart className={`w-5 h-5 ${isActive('/notifications') ? 'fill-current' : ''}`} />
+              {unreadCount > 0 && (
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" />
+              )}
+            </div>
+            <span className="font-medium">Notifications</span>
+          </motion.div>
+
+          {/* Notification Pop-up */}
+          <AnimatePresence>
+            {showPopup && lastNotification && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, x: -20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                className="absolute left-full top-1/2 -translate-y-1/2 ml-2 flex gap-1 pointer-events-none z-50 min-w-max"
+              >
+                {/* Like Count Pop-up */}
+                {notificationCounts.like > 0 && (
+                  <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-red-500 shadow-lg text-white">
+                    <Heart className="w-3.5 h-3.5 fill-current" />
+                    <span className="text-xs font-bold">{notificationCounts.like}</span>
+                  </div>
+                )}
+
+                {/* Comment Count Pop-up */}
+                {notificationCounts.comment > 0 && (
+                  <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-500 shadow-lg text-white">
+                    <MessageCircle className="w-3.5 h-3.5 fill-current" />
+                    <span className="text-xs font-bold">{notificationCounts.comment}</span>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Link>
+
         <SidebarLink
           to={`/profile/${user?.username || ''}`}
           icon={User}
@@ -104,8 +175,6 @@ export default function Sidebar() {
           <span className="font-medium">Create</span>
         </button>
       </nav>
-
-
     </aside>
   );
 }
