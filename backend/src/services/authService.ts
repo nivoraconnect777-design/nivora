@@ -358,6 +358,49 @@ class AuthService {
       where: { id: user.id },
       data: {
         password: hashedPassword,
+        verificationToken: null,
+        verificationExpires: null,
+      },
+    });
+
+    return { message: 'Password reset successfully' };
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || user.password === null) {
+      throw new Error('User not found or uses social login');
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    return {
+      message: 'Password changed successfully',
+    };
+  }
+
+  async getUserById(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
         id: true,
         username: true,
         email: true,
@@ -375,6 +418,7 @@ class AuthService {
 
     return user;
   }
+}
 }
 
 export default new AuthService();
