@@ -28,6 +28,18 @@ model User {
   updatedAt     DateTime @updatedAt
 
   posts         Post[]
+  reels         Reel[]
+  stories       Story[]
+  storyViews    StoryView[]
+  comments      Comment[]
+  likes         Like[]
+  commentLikes  CommentLike[]
+  savedPosts    SavedPost[]
+
+  followers     Follow[] @relation("UserFollowers")
+  following     Follow[] @relation("UserFollowing")
+
+  sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
   conversations    ConversationParticipant[]
 
