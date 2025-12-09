@@ -15,7 +15,7 @@ import {
     Monitor
 } from 'lucide-react';
 import EditProfileModal from '../components/profile/EditProfileModal';
-import { api } from '../lib/axios';
+import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
