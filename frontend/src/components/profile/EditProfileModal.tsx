@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Camera, Loader2, User, FileText, AtSign, CheckCircle, XCircle } from 'lucide-react';
+import { X, Camera, Loader2, User, FileText, AtSign, CheckCircle, XCircle, Smile } from 'lucide-react';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useThemeStore } from '../../stores/themeStore';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
@@ -16,26 +17,51 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
   const { user, setUser } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     username: user?.username || '',
     displayName: user?.displayName || '',
     bio: user?.bio || '',
   });
-  
+
   const [previewImage, setPreviewImage] = useState<string | null>(user?.profilePicUrl || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   // Username validation states
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [usernameError, setUsernameError] = useState<string>('');
 
+  // Emoji Picker State
+  const [activeEmojiField, setActiveEmojiField] = useState<'displayName' | 'bio' | null>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setActiveEmojiField(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    if (activeEmojiField === 'displayName') {
+      setFormData(prev => ({ ...prev, displayName: prev.displayName + emojiData.emoji }));
+    } else if (activeEmojiField === 'bio') {
+      setFormData(prev => ({ ...prev, bio: prev.bio + emojiData.emoji }));
+    }
+  };
+
   // Check username availability with debounce
   useEffect(() => {
     const checkUsername = async () => {
       const username = formData.username.trim();
-      
+
       // Reset if empty or same as current
       if (!username || username === user?.username) {
         setUsernameAvailable(null);
@@ -133,7 +159,7 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Check if user is authenticated (user object exists in store)
     if (!user) {
       toast.error('You need to log in first');
@@ -180,22 +206,22 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
 
       const updatedUser = response.data.data;
       setUser(updatedUser);
-      
+
       toast.success('Profile updated successfully!');
       onClose();
     } catch (error: any) {
       console.error('Profile update error:', error);
       console.error('Error response:', error.response);
-      
+
       if (error.response?.status === 401) {
         toast.error('Your session has expired. Please log in again.');
         setTimeout(() => {
           window.location.href = '/login';
         }, 2000);
       } else {
-        const errorMessage = error.response?.data?.error?.message 
-          || error.response?.data?.message 
-          || error.message 
+        const errorMessage = error.response?.data?.error?.message
+          || error.response?.data?.message
+          || error.message
           || 'Failed to update profile';
         toast.error(errorMessage);
       }
@@ -224,14 +250,12 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`w-full max-w-lg rounded-2xl shadow-2xl ${
-                isDark ? 'bg-gray-800' : 'bg-white'
-              }`}
+              className={`w-full max-w-lg rounded-2xl shadow-2xl ${isDark ? 'bg-gray-800' : 'bg-white'
+                }`}
             >
               {/* Header */}
-              <div className={`flex items-center justify-between p-6 border-b ${
-                isDark ? 'border-gray-700' : 'border-gray-200'
-              }`}>
+              <div className={`flex items-center justify-between p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'
+                }`}>
                 <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   Edit Profile
                 </h2>
@@ -239,9 +263,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
-                  className={`p-2 rounded-xl transition-colors ${
-                    isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
-                  }`}
+                  className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
+                    }`}
                 >
                   <X className="w-5 h-5" />
                 </motion.button>
@@ -252,9 +275,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                 {/* Profile Picture Upload */}
                 <div className="flex flex-col items-center">
                   <div className="relative group">
-                    <div className={`w-32 h-32 rounded-full overflow-hidden border-4 ${
-                      isDark ? 'border-gray-700' : 'border-gray-200'
-                    }`}>
+                    <div className={`w-32 h-32 rounded-full overflow-hidden border-4 ${isDark ? 'border-gray-700' : 'border-gray-200'
+                      }`}>
                       {previewImage ? (
                         <img
                           src={previewImage}
@@ -269,7 +291,7 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                         </div>
                       )}
                     </div>
-                    
+
                     <label
                       htmlFor="profile-pic"
                       className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
@@ -296,9 +318,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
 
                 {/* Username */}
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Username
                   </label>
                   <div className="relative">
@@ -307,17 +328,15 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                       type="text"
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
-                      className={`w-full pl-10 pr-10 py-3 border rounded-xl focus:ring-2 transition-all ${
-                        usernameError
+                      className={`w-full pl-10 pr-10 py-3 border rounded-xl focus:ring-2 transition-all ${usernameError
                           ? 'border-red-500 focus:ring-red-500'
                           : usernameAvailable
-                          ? 'border-green-500 focus:ring-green-500'
-                          : 'focus:ring-blue-500'
-                      } ${
-                        isDark
+                            ? 'border-green-500 focus:ring-green-500'
+                            : 'focus:ring-blue-500'
+                        } ${isDark
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                      }`}
+                        }`}
                       placeholder="your_username"
                     />
                     {/* Status Icon */}
@@ -340,10 +359,9 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                 </div>
 
                 {/* Display Name */}
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <div className="relative">
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Display Name
                   </label>
                   <div className="relative">
@@ -352,21 +370,39 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                       type="text"
                       value={formData.displayName}
                       onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                      className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                        isDark
+                      className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${isDark
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                      }`}
+                        }`}
                       placeholder="Your display name"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setActiveEmojiField(activeEmojiField === 'displayName' ? null : 'displayName')}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${activeEmojiField === 'displayName'
+                          ? (isDark ? 'bg-gray-600 text-yellow-400' : 'bg-gray-200 text-yellow-500')
+                          : 'text-gray-400 hover:text-gray-500'
+                        }`}
+                    >
+                      <Smile className="w-5 h-5" />
+                    </button>
+                    {activeEmojiField === 'displayName' && (
+                      <div ref={emojiPickerRef} className="absolute right-0 top-full mt-2 z-50 shadow-2xl rounded-xl overflow-hidden">
+                        <EmojiPicker
+                          onEmojiClick={onEmojiClick}
+                          theme={isDark ? Theme.DARK : Theme.LIGHT}
+                          width={300}
+                          height={400}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Bio */}
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                <div className="relative">
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                     Bio
                   </label>
                   <div className="relative">
@@ -376,13 +412,32 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                       maxLength={150}
                       rows={3}
-                      className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none ${
-                        isDark
+                      className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none ${isDark
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                      }`}
+                        }`}
                       placeholder="Tell us about yourself..."
                     />
+                    <button
+                      type="button"
+                      onClick={() => setActiveEmojiField(activeEmojiField === 'bio' ? null : 'bio')}
+                      className={`absolute right-3 top-3 p-1.5 rounded-full transition-colors ${activeEmojiField === 'bio'
+                          ? (isDark ? 'bg-gray-600 text-yellow-400' : 'bg-gray-200 text-yellow-500')
+                          : 'text-gray-400 hover:text-gray-500'
+                        }`}
+                    >
+                      <Smile className="w-5 h-5" />
+                    </button>
+                    {activeEmojiField === 'bio' && (
+                      <div ref={emojiPickerRef} className="absolute right-0 top-full mt-2 z-50 shadow-2xl rounded-xl overflow-hidden">
+                        <EmojiPicker
+                          onEmojiClick={onEmojiClick}
+                          theme={isDark ? Theme.DARK : Theme.LIGHT}
+                          width={300}
+                          height={400}
+                        />
+                      </div>
+                    )}
                   </div>
                   <p className={`text-xs mt-1 text-right ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     {formData.bio.length}/150
@@ -396,11 +451,10 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={onClose}
-                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${
-                      isDark
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${isDark
                         ? 'bg-gray-700 text-white hover:bg-gray-600'
                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     Cancel
                   </motion.button>

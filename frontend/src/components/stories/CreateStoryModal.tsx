@@ -1,8 +1,10 @@
 ﻿import { useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Type, ZoomIn, ZoomOut, Loader2 } from 'lucide-react';
+import { X, Type, ZoomIn, ZoomOut, Loader2, Smile } from 'lucide-react';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useThemeStore } from '../../stores/themeStore';
 import toast from 'react-hot-toast';
 import api from '../../lib/api';
 
@@ -22,6 +24,7 @@ interface TextOverlay {
 
 export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalProps) {
     const queryClient = useQueryClient();
+    const { isDark } = useThemeStore();
     const [file, setFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
@@ -40,9 +43,16 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
     const [isAddingText, setIsAddingText] = useState(false);
     const [newText, setNewText] = useState('');
 
+    // Emoji state
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
     const imageRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const onEmojiClick = (emojiData: EmojiClickData) => {
+        setNewText(prev => prev + emojiData.emoji);
+    };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
@@ -120,6 +130,7 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
         setNewText('');
         setIsAddingText(false);
         setActiveTextId(newOverlay.id);
+        setShowEmojiPicker(false);
     };
 
     const handleTextDrag = (id: string, e: React.MouseEvent | React.TouchEvent) => {
@@ -533,15 +544,33 @@ export default function CreateStoryModal({ isOpen, onClose }: CreateStoryModalPr
                         <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50">
                             <div className="bg-gray-900 rounded-2xl p-6 w-80">
                                 <h4 className="text-white font-semibold mb-4">Add Text</h4>
-                                <input
-                                    type="text"
-                                    value={newText}
-                                    onChange={(e) => setNewText(e.target.value)}
-                                    placeholder="Type something..."
-                                    className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 outline-none mb-4"
-                                    autoFocus
-                                    onKeyPress={(e) => e.key === 'Enter' && handleAddText()}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={newText}
+                                        onChange={(e) => setNewText(e.target.value)}
+                                        placeholder="Type something..."
+                                        className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 outline-none mb-4 pr-10"
+                                        autoFocus
+                                        onKeyPress={(e) => e.key === 'Enter' && handleAddText()}
+                                    />
+                                    <button
+                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                        className="absolute right-3 top-3.5 text-gray-400 hover:text-white"
+                                    >
+                                        <Smile className="w-5 h-5" />
+                                    </button>
+                                    {showEmojiPicker && (
+                                        <div className="absolute top-full left-0 z-50">
+                                            <EmojiPicker
+                                                onEmojiClick={onEmojiClick}
+                                                theme={isDark ? Theme.DARK : Theme.LIGHT}
+                                                width={280}
+                                                height={300}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setIsAddingText(false)}

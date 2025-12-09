@@ -1,19 +1,30 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image, Video, X, Loader2, PlusSquare } from 'lucide-react';
+import { Image, Video, X, Loader2, PlusSquare, Smile } from 'lucide-react';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useThemeStore } from '../../stores/themeStore';
 import api from '../../lib/api';
 
 export default function CreatePostModal() {
     const { user } = useAuthStore();
     const { isCreatePostModalOpen, closeCreatePostModal, triggerFeedRefresh } = useUIStore();
+    const { isDark } = useThemeStore();
     const [caption, setCaption] = useState('');
     const [mediaFile, setMediaFile] = useState<File | null>(null);
     const [mediaPreview, setMediaPreview] = useState<string | null>(null);
     const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
     const [isLoading, setIsLoading] = useState(false);
+
+    // Emoji state
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const onEmojiClick = (emojiData: EmojiClickData) => {
+        setCaption(prev => prev + emojiData.emoji);
+    };
 
     const compressImage = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
@@ -112,6 +123,7 @@ export default function CreatePostModal() {
             });
 
             setCaption('');
+            setShowEmojiPicker(false);
             clearMedia();
             triggerFeedRefresh();
             closeCreatePostModal();
@@ -233,13 +245,29 @@ export default function CreatePostModal() {
                                 </div>
 
                                 {/* Caption Input */}
-                                <div className="mb-6">
+                                <div className="mb-6 relative">
                                     <textarea
                                         value={caption}
                                         onChange={(e) => setCaption(e.target.value)}
                                         placeholder="Write a caption..."
                                         className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl p-4 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 resize-none min-h-[100px]"
                                     />
+                                    <button
+                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                        className="absolute bottom-3 right-3 p-2 text-gray-400 hover:text-yellow-500 transition-colors"
+                                    >
+                                        <Smile className="w-5 h-5" />
+                                    </button>
+                                    {showEmojiPicker && (
+                                        <div className="absolute right-0 bottom-full mb-2 z-10 shadow-2xl rounded-xl overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                            <EmojiPicker
+                                                onEmojiClick={onEmojiClick}
+                                                theme={isDark ? Theme.DARK : Theme.LIGHT}
+                                                width={300}
+                                                height={400}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Actions */}
