@@ -9,6 +9,7 @@ import {
   Sparkles,
   PlusSquare,
   Heart,
+  Settings,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
@@ -158,6 +159,14 @@ export default function Sidebar() {
           icon={User}
           label="Profile"
           active={location.pathname.startsWith('/profile')}
+          isDark={isDark}
+        />
+
+        <SidebarLink
+          to="/settings"
+          icon={Settings}
+          label="Settings"
+          active={isActive('/settings')}
           isDark={isDark}
         />
 

@@ -67,7 +67,10 @@ function App() {
                 <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
                 <Route path="/profile/:username" element={<ProfilePage />} />
                 <Route path="/post/:id" element={<PostPage />} />
-                <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+                import SettingsPage from './pages/SettingsPage';
+
+                // ... (inside Routes)
+                <Route path="/settings" element={<SettingsPage />} />
               </Route>
 
               {/* Video Call Route - Outside AppLayout for full screen */}

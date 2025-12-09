@@ -19,6 +19,7 @@ router.get('/me', authenticate, authController.getCurrentUser);
 // Password reset
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
+router.post('/change-password', authenticate, authController.changePassword);
 
 // Google OAuth
 router.get(

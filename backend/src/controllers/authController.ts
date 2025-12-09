@@ -214,3 +214,35 @@ export const getCurrentUser = async (req: Request, res: Response, next: NextFunc
     next(createError(error.message, 401, 'GET_USER_FAILED'));
   }
 };
+
+export const changePassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).user?.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!userId) {
+      throw createError('Unauthorized', 401, 'UNAUTHORIZED');
+    }
+
+    if (!currentPassword || !newPassword) {
+      throw createError('Missing required fields', 400, 'VALIDATION_FAILED');
+    }
+
+    if (newPassword.length < 8) {
+      throw createError('New password must be at least 8 characters', 400, 'VALIDATION_FAILED');
+    }
+
+    const result = await authService.changePassword(userId, currentPassword, newPassword);
+
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error: any) {
+    if (error.message === 'Current password is incorrect') {
+      next(createError(error.message, 400, 'INVALID_PASSWORD'));
+    } else {
+      next(createError(error.message, 400, 'CHANGE_PASSWORD_FAILED'));
+    }
+  }
+};

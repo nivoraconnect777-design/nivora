@@ -1,0 +1,265 @@
+import { useState } from 'react';
+import { useAuthStore } from '../stores/authStore';
+import { useThemeStore } from '../stores/themeStore';
+import { motion } from 'framer-motion';
+import {
+    User,
+    Lock,
+    Bell,
+    Moon,
+    Sun,
+    Shield,
+    Smartphone,
+    LogOut,
+    ChevronRight,
+    Monitor
+} from 'lucide-react';
+import EditProfileModal from '../components/profile/EditProfileModal';
+import { api } from '../lib/axios';
+import toast from 'react-hot-toast';
+
+export default function SettingsPage() {
+    const { user, logout } = useAuthStore();
+    const { isDark, toggleTheme } = useThemeStore();
+    const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
+    // Password Change State
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Notification Toggles (Mock state for now)
+    const [notifications, setNotifications] = useState({
+        push: true,
+        email: true,
+        likes: true,
+        comments: true,
+        messages: true,
+    });
+
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            toast.error("New passwords don't match");
+            return;
+        }
+        if (newPassword.length < 8) {
+            toast.error("Password must be at least 8 characters");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            await api.post('/api/auth/change-password', {
+                currentPassword,
+                newPassword
+            });
+            toast.success("Password changed successfully");
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to change password");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const toggleNotification = (key: keyof typeof notifications) => {
+        setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+        toast.success("Preference updated");
+    };
+
+    return (
+        <div className={`min-h-screen pb-20 md:pl-64 ${isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
+            <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
+                <header className="mb-8">
+                    <h1 className="text-3xl font-bold">Settings</h1>
+                    <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Manage your account preferences and security.
+                    </p>
+                </header>
+
+                {/* Account Section */}
+                <section className={`rounded-xl overflow-hidden border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
+                    <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <User className="w-5 h-5 text-blue-500" />
+                            Account
+                        </h2>
+                    </div>
+                    <div className="p-6 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <img
+                                    src={user?.profilePicUrl || `https://ui-avatars.com/api/?name=${user?.username}&background=random`}
+                                    alt={user?.username}
+                                    className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                                />
+                                <div>
+                                    <h3 className="font-semibold text-lg">{user?.displayName}</h3>
+                                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>@{user?.username}</p>
+                                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{user?.email}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsEditProfileOpen(true)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'
+                                    }`}
+                            >
+                                Edit Profile
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Appearance Section */}
+                <section className={`rounded-xl overflow-hidden border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
+                    <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <Monitor className="w-5 h-5 text-purple-500" />
+                            Appearance
+                        </h2>
+                    </div>
+                    <div className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-blue-50'}`}>
+                                    {isDark ? <Moon className="w-5 h-5 text-purple-400" /> : <Sun className="w-5 h-5 text-orange-500" />}
+                                </div>
+                                <div>
+                                    <p className="font-medium">Dark Mode</p>
+                                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        Toggle between light and dark themes
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={toggleTheme}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${isDark ? 'bg-purple-600' : 'bg-gray-300'
+                                    }`}
+                            >
+                                <div
+                                    className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${isDark ? 'translate-x-6' : 'translate-x-0'
+                                        }`}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Security Section (Change Password) */}
+                <section className={`rounded-xl overflow-hidden border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
+                    <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <Shield className="w-5 h-5 text-green-500" />
+                            Security
+                        </h2>
+                    </div>
+                    <div className="p-6">
+                        <form onSubmit={handlePasswordChange} className="max-w-md space-y-4">
+                            <div>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Current Password</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+                                    <input
+                                        type="password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
+                                        placeholder="Enter current password"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>New Password</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+                                    <input
+                                        type="password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
+                                        placeholder="Enter new password (min 8 chars)"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Confirm New Password</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+                                    <input
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
+                                        placeholder="Confirm new password"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? 'Updating...' : 'Update Password'}
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                {/* Notifications Section */}
+                <section className={`rounded-xl overflow-hidden border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
+                    <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <Bell className="w-5 h-5 text-yellow-500" />
+                            Notifications
+                        </h2>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        {Object.entries(notifications).map(([key, value]) => (
+                            <div key={key} className="flex items-center justify-between py-2">
+                                <div className="capitalize font-medium text-gray-700 dark:text-gray-300">
+                                    {key === 'push' ? 'Push Notifications' : `${key} Notifications`}
+                                </div>
+                                <button
+                                    onClick={() => toggleNotification(key as keyof typeof notifications)}
+                                    className={`w-11 h-6 rounded-full transition-colors relative ${value ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'
+                                        }`}
+                                >
+                                    <div
+                                        className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${value ? 'translate-x-5' : 'translate-x-0'
+                                            }`}
+                                    />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Danger Zone */}
+                <div className="pt-8 border-t border-gray-200 dark:border-gray-800">
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium transition-colors"
+                    >
+                        <LogOut className="w-5 h-5" />
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+
+            <EditProfileModal
+                isOpen={isEditProfileOpen}
+                onClose={() => setIsEditProfileOpen(false)}
+            />
+        </div>
+    );
+}

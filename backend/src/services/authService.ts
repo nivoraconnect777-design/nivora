@@ -358,18 +358,6 @@ class AuthService {
       where: { id: user.id },
       data: {
         password: hashedPassword,
-        verificationToken: null,
-        verificationExpires: null,
-      },
-    });
-
-    return { message: 'Password reset successfully' };
-  }
-
-  async getUserById(userId: string) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
         id: true,
         username: true,
         email: true,
