@@ -12,7 +12,9 @@ import {
     Smartphone,
     LogOut,
     ChevronRight,
-    Monitor
+    Monitor,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import EditProfileModal from '../components/profile/EditProfileModal';
 import { api } from '../lib/api';
@@ -28,6 +30,11 @@ export default function SettingsPage() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // Password Visibility State
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     // Notification Toggles (Mock state for now)
     const [notifications, setNotifications] = useState({
@@ -140,7 +147,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className={`min-h-screen pb-20 md:pl-64 ${isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
+        <div className={`min-h-screen pb-20 ${isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
             <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold">Settings</h1>
@@ -211,14 +218,21 @@ export default function SettingsPage() {
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
                                         <input
-                                            type="password"
+                                            type={showCurrentPassword ? 'text' : 'password'}
                                             value={currentPassword}
                                             onChange={(e) => setCurrentPassword(e.target.value)}
-                                            className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                            className={`w-full pl-10 pr-12 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                                                 }`}
                                             placeholder="Enter current password"
                                             required
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                        >
+                                            {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -230,14 +244,21 @@ export default function SettingsPage() {
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
                                     <input
-                                        type="password"
+                                        type={showNewPassword ? 'text' : 'password'}
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
-                                        className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                        className={`w-full pl-10 pr-12 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                                             }`}
                                         placeholder={user?.hasPassword ? "Enter new password (min 8 chars)" : "Create a strong password (min 8 chars)"}
                                         required
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                    >
+                                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
                                 </div>
                             </div>
                             <div>
@@ -245,14 +266,21 @@ export default function SettingsPage() {
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
                                     <input
-                                        type="password"
+                                        type={showConfirmPassword ? 'text' : 'password'}
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                        className={`w-full pl-10 pr-12 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                                             }`}
                                         placeholder="Confirm new password"
                                         required
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
                                 </div>
                             </div>
                             <button
