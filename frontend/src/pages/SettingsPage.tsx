@@ -66,7 +66,40 @@ export default function SettingsPage() {
             .catch(err => console.error('Failed to fetch user info', err));
     }, [updateUser]);
 
-    // ... (handlePasswordChange remains same)
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            toast.error("New passwords don't match");
+            return;
+        }
+        if (newPassword.length < 8) {
+            toast.error("Password must be at least 8 characters");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            // If user has no password, currentPassword will be empty string, which is handled by backend
+            await api.post('/api/auth/change-password', {
+                currentPassword: user?.hasPassword ? currentPassword : undefined,
+                newPassword
+            });
+            toast.success(user?.hasPassword ? "Password changed successfully" : "Password set successfully");
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+
+            // Refresh user to update hasPassword status
+            api.get('/api/auth/me').then(res => {
+                if (res.data.success) updateUser(res.data.data.user);
+            });
+
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to update password");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handlePushToggle = async () => {
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
