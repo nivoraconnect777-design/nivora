@@ -83,9 +83,27 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
 
     const result = await authService.verifyEmail(token);
 
+    // Set httpOnly cookies for tokens (PRODUCTION STANDARD)
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     res.json({
       success: true,
       message: result.message,
+      user: result.user,
     });
   } catch (error: any) {
     next(createError(error.message, 400, 'VERIFICATION_FAILED'));
