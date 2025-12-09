@@ -1,5 +1,5 @@
 import webpush from 'web-push';
-import prisma from '../lib/prisma';
+import prisma from '../config/database';
 
 // Helper to initialize web-push
 // In production, these should be in environment variables
