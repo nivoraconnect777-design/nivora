@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth';
+import { saveSubscription } from '../services/notificationService';
 
 export const getNotifications = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -123,3 +124,22 @@ export const getUnreadCount = async (req: AuthRequest, res: Response): Promise<v
         res.status(500).json({ success: false, message: 'Error fetching unread count' });
     }
 };
+
+export const subscribe = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: 'Unauthorized' });
+            return;
+        }
+
+        const subscription = req.body;
+        await saveSubscription(userId, subscription);
+
+        res.status(201).json({ success: true, message: 'Subscribed successfully' });
+    } catch (error) {
+        console.error('Subscribe error:', error);
+        res.status(500).json({ success: false, message: 'Error processing subscription' });
+    }
+};
+

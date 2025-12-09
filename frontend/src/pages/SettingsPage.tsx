@@ -66,6 +66,56 @@ export default function SettingsPage() {
         }
     };
 
+    const handlePushToggle = async () => {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            toast.error('Push notifications are not supported via this browser.');
+            return;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                toast.error('Permission denied');
+                return;
+            }
+
+            const registration = await navigator.serviceWorker.ready;
+            let subscription = await registration.pushManager.getSubscription();
+
+            if (!subscription) {
+                const publicVapidKey = 'BKXoTvbbjBNL8F_al8XG0lqsc6JMZlMtcf8X57QrKUKPncsCIIL9GpOfUg-z-o-UOkN0U7TjiOV_mAXIJ3GVQvk';
+
+                const urlBase64ToUint8Array = (base64String: string) => {
+                    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                    const base64 = (base64String + padding)
+                        .replace(/\-/g, '+')
+                        .replace(/_/g, '/');
+
+                    const rawData = window.atob(base64);
+                    const outputArray = new Uint8Array(rawData.length);
+
+                    for (let i = 0; i < rawData.length; ++i) {
+                        outputArray[i] = rawData.charCodeAt(i);
+                    }
+                    return outputArray;
+                };
+
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+                });
+            }
+
+            await api.post('/notifications/subscribe', subscription);
+            toast.success('Push notifications enabled!');
+            setNotifications(prev => ({ ...prev, push: true }));
+
+        } catch (error) {
+            console.error('Error enabling push:', error);
+            toast.error('Failed to enable push notifications');
+        }
+    };
+
     const toggleNotification = (key: keyof typeof notifications) => {
         setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
         toast.success("Preference updated");
@@ -115,41 +165,6 @@ export default function SettingsPage() {
                 </section>
 
                 {/* Appearance Section */}
-                <section className={`rounded-xl overflow-hidden border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-                        <h2 className="text-xl font-semibold flex items-center gap-2">
-                            <Monitor className="w-5 h-5 text-purple-500" />
-                            Appearance
-                        </h2>
-                    </div>
-                    <div className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-blue-50'}`}>
-                                    {isDark ? <Moon className="w-5 h-5 text-purple-400" /> : <Sun className="w-5 h-5 text-orange-500" />}
-                                </div>
-                                <div>
-                                    <p className="font-medium">Dark Mode</p>
-                                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        Toggle between light and dark themes
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={toggleTheme}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${isDark ? 'bg-purple-600' : 'bg-gray-300'
-                                    }`}
-                            >
-                                <div
-                                    className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${isDark ? 'translate-x-6' : 'translate-x-0'
-                                        }`}
-                                />
-                            </button>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Security Section (Change Password) */}
                 <section className={`rounded-xl overflow-hidden border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
                     <div className="p-6 border-b border-gray-200 dark:border-gray-800">
                         <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -230,7 +245,7 @@ export default function SettingsPage() {
                                     {key === 'push' ? 'Push Notifications' : `${key} Notifications`}
                                 </div>
                                 <button
-                                    onClick={() => toggleNotification(key as keyof typeof notifications)}
+                                    onClick={() => key === 'push' ? handlePushToggle() : toggleNotification(key as keyof typeof notifications)}
                                     className={`w-11 h-6 rounded-full transition-colors relative ${value ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'
                                         }`}
                                 >
