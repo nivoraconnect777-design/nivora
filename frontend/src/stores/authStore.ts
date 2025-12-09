@@ -8,6 +8,7 @@ interface User {
   displayName?: string;
   bio?: string;
   profilePicUrl?: string;
+  hasPassword?: boolean;
 }
 
 interface AuthState {

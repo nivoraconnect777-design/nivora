@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
 import { motion } from 'framer-motion';
@@ -19,7 +19,7 @@ import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
-    const { user, logout } = useAuthStore();
+    const { user, logout, updateUser } = useAuthStore();
     const { isDark, toggleTheme } = useThemeStore();
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
@@ -38,6 +38,17 @@ export default function SettingsPage() {
         messages: true,
     });
 
+    useEffect(() => {
+        // Fetch latest user data to check hasPassword status
+        api.get('/api/auth/me')
+            .then(res => {
+                if (res.data.success) {
+                    updateUser(res.data.data.user);
+                }
+            })
+            .catch(err => console.error('Failed to fetch user info', err));
+    }, [updateUser]);
+
     const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newPassword !== confirmPassword) {
@@ -51,16 +62,23 @@ export default function SettingsPage() {
 
         setIsLoading(true);
         try {
+            // If user has no password, currentPassword will be empty string, which is handled by backend
             await api.post('/api/auth/change-password', {
-                currentPassword,
+                currentPassword: user?.hasPassword ? currentPassword : undefined,
                 newPassword
             });
-            toast.success("Password changed successfully");
+            toast.success(user?.hasPassword ? "Password changed successfully" : "Password set successfully");
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
+
+            // Refresh user to update hasPassword status
+            api.get('/api/auth/me').then(res => {
+                if (res.data.success) updateUser(res.data.data.user);
+            });
+
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to change password");
+            toast.error(error.response?.data?.message || "Failed to update password");
         } finally {
             setIsLoading(false);
         }
@@ -173,24 +191,42 @@ export default function SettingsPage() {
                         </h2>
                     </div>
                     <div className="p-6">
-                        <form onSubmit={handlePasswordChange} className="max-w-md space-y-4">
-                            <div>
-                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Current Password</label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
-                                    <input
-                                        type="password"
-                                        value={currentPassword}
-                                        onChange={(e) => setCurrentPassword(e.target.value)}
-                                        className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-                                            }`}
-                                        placeholder="Enter current password"
-                                        required
-                                    />
+                        {!user?.hasPassword && (
+                            <div className={`mb-6 p-4 rounded-lg flex gap-3 ${isDark ? 'bg-yellow-900/20 text-yellow-200' : 'bg-yellow-50 text-yellow-800'}`}>
+                                <Shield className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <h3 className="font-semibold mb-1">Verify or complete your security</h3>
+                                    <p className="text-sm opacity-90">
+                                        Your account is currently secured with Google. Adding a password provides an alternative login method and reduces account vulnerabilities.
+                                        You can do this now or later.
+                                    </p>
                                 </div>
                             </div>
+                        )}
+
+                        <form onSubmit={handlePasswordChange} className="max-w-md space-y-4">
+                            {user?.hasPassword && (
+                                <div>
+                                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Current Password</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+                                        <input
+                                            type="password"
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
+                                            className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
+                                            placeholder="Enter current password"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
-                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>New Password</label>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    {user?.hasPassword ? 'New Password' : 'Create Password'}
+                                </label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
                                     <input
@@ -199,7 +235,7 @@ export default function SettingsPage() {
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                                             }`}
-                                        placeholder="Enter new password (min 8 chars)"
+                                        placeholder={user?.hasPassword ? "Enter new password (min 8 chars)" : "Create a strong password (min 8 chars)"}
                                         required
                                     />
                                 </div>
@@ -224,7 +260,7 @@ export default function SettingsPage() {
                                 disabled={isLoading}
                                 className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isLoading ? 'Updating...' : 'Update Password'}
+                                {isLoading ? 'Updating...' : (user?.hasPassword ? 'Update Password' : 'Set Password')}
                             </button>
                         </form>
                     </div>

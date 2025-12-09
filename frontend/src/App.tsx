@@ -52,8 +52,8 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
-              <Route path="/verify-email" element={<VerifyEmailPage />} />
-              <Route path="/verify-email-handler" element={<EmailVerificationHandler />} />
+              <Route path="/verify-email-pending" element={<VerifyEmailPage />} />
+              <Route path="/verify-email" element={<EmailVerificationHandler />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
 

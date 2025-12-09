@@ -366,19 +366,29 @@ class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+  async changePassword(userId: string, currentPassword: string | undefined, newPassword: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
-    if (!user || user.password === null) {
-      throw new Error('User not found or uses social login');
+    if (!user) {
+      throw new Error('User not found');
     }
 
-    // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isPasswordValid) {
-      throw new Error('Current password is incorrect');
+    // Check if user has a password set (not a Google OAuth user with empty password)
+    const hasPassword = user.password && user.password.length > 0;
+
+    if (hasPassword) {
+      // If user has a password, current password is required
+      if (!currentPassword) {
+        throw new Error('Current password is required');
+      }
+
+      // Verify current password
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
+        throw new Error('Current password is incorrect');
+      }
     }
 
     // Hash new password
@@ -393,30 +403,31 @@ class AuthService {
     });
 
     return {
-      message: 'Password changed successfully',
+      message: hasPassword ? 'Password changed successfully' : 'Password set successfully',
     };
   }
 
   async getUserById(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        displayName: true,
-        bio: true,
-        profilePicUrl: true,
-        isVerified: true,
-        createdAt: true,
-      },
     });
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    return user;
+    // Return user data excluding password, but including hasPassword flag
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      displayName: user.displayName,
+      bio: user.bio,
+      profilePicUrl: user.profilePicUrl,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt,
+      hasPassword: !!user.password && user.password.length > 0,
+    };
   }
 }
 

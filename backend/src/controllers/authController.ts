@@ -224,8 +224,8 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
       throw createError('Unauthorized', 401, 'UNAUTHORIZED');
     }
 
-    if (!currentPassword || !newPassword) {
-      throw createError('Missing required fields', 400, 'VALIDATION_FAILED');
+    if (!newPassword) {
+      throw createError('New password is required', 400, 'VALIDATION_FAILED');
     }
 
     if (newPassword.length < 8) {
