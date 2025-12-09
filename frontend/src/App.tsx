@@ -18,6 +18,9 @@ import ExplorePage from './pages/ExplorePage';
 import ChatPage from './pages/ChatPage';
 import NotificationsPage from './pages/NotificationsPage';
 import PostPage from './pages/PostPage';
+import SettingsPage from './pages/SettingsPage';
+import StreamVideoProvider from './providers/StreamVideoProvider';
+import CallPage from './pages/CallPage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -29,9 +32,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-import StreamVideoProvider from './providers/StreamVideoProvider';
-import CallPage from './pages/CallPage';
 
 // ... imports
 
@@ -67,9 +67,6 @@ function App() {
                 <Route path="/bookmarks" element={<PlaceholderPage title="Bookmarks" />} />
                 <Route path="/profile/:username" element={<ProfilePage />} />
                 <Route path="/post/:id" element={<PostPage />} />
-                import SettingsPage from './pages/SettingsPage';
-
-                // ... (inside Routes)
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
 
