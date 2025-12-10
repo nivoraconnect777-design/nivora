@@ -2,6 +2,7 @@ import { Response } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth';
 import { redis, CACHE_TTL } from '../config/redisClient';
+import { sendPushNotification } from '../services/notificationService';
 
 export const createPost = async (req: AuthRequest, res: Response) => {
     try {
@@ -554,6 +555,13 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
                         postId: id,
                     },
                 });
+
+                // Send Push Notification
+                await sendPushNotification(post.userId, {
+                    title: 'New Like',
+                    body: `${req.user?.username} liked your post`,
+                    url: `/post/${id}`,
+                });
             }
 
             // Invalidate caches if Redis is available
@@ -633,6 +641,13 @@ export const addComment = async (req: AuthRequest, res: Response) => {
                     postId: id,
                     commentId: comment.id,
                 },
+            });
+
+            // Send Push Notification
+            await sendPushNotification(post.userId, {
+                title: 'New Comment',
+                body: `${req.user?.username} commented on your post: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}`,
+                url: `/post/${id}`,
             });
         }
 

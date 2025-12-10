@@ -77,9 +77,9 @@ export default function CreatePostModal() {
         const file = e.target.files?.[0];
         if (file) {
             if (file.type.startsWith('video')) {
-                // Check video size (limit to 4MB for Vercel serverless)
-                if (file.size > 4 * 1024 * 1024) {
-                    alert('Video file is too large. Please upload a video smaller than 4MB.');
+                // Check video size (limit to 35MB for Vercel serverless)
+                if (file.size > 35 * 1024 * 1024) {
+                    alert('Video file is too large. Please upload a video smaller than 35MB.');
                     return;
                 }
                 setMediaFile(file);
