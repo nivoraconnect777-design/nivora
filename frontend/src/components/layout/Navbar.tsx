@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import StoryTray from '../stories/StoryTray';
 import MobileMenu from './MobileMenu';
 import { useState, useRef, useEffect } from 'react';
+import { useSearchHistory } from '../hooks/useSearchHistory';
 
 export default function Navbar() {
   const location = useLocation();
@@ -209,7 +210,7 @@ function ExpandableSearch({ isDark }: { isDark: boolean }) {
   const navigate = useNavigate();
 
   // Import search history hook
-  const { history, addToHistory, removeFromHistory } = require('../hooks/useSearchHistory').useSearchHistory();
+  const { history, addToHistory, removeFromHistory } = useSearchHistory();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -289,7 +290,7 @@ function ExpandableSearch({ isDark }: { isDark: boolean }) {
                 Recent
               </h3>
               <div className="space-y-1">
-                {history.slice(0, 5).map((user: any) => (
+                {history.slice(0, 5).map((user) => (
                   <div
                     key={user.id}
                     className={`flex items-center gap-3 p-2 rounded-lg transition-all group ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
