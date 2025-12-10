@@ -139,7 +139,38 @@ export const subscribe = async (req: AuthRequest, res: Response): Promise<void> 
         res.status(201).json({ success: true, message: 'Subscribed successfully' });
     } catch (error) {
         console.error('Subscribe error:', error);
-        res.status(500).json({ success: false, message: 'Error processing subscription' });
+    }
+};
+
+export const triggerPush = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: 'Unauthorized' });
+            return;
+        }
+
+        const { targetUserId, title, body, url, icon } = req.body;
+
+        if (!targetUserId || !title || !body) {
+            res.status(400).json({ success: false, message: 'Missing required fields' });
+            return;
+        }
+
+        const { sendPushNotification } = await import('../services/notificationService');
+
+        await sendPushNotification(targetUserId, {
+            title,
+            body,
+            url,
+            icon: icon || req.user?.profilePicUrl, // Use sender's profile pic if available
+            badge: '/logo-192.png' // Use app logo if available, or default
+        });
+
+        res.status(200).json({ success: true, message: 'Push notification sent' });
+    } catch (error) {
+        console.error('Trigger push error:', error);
+        res.status(500).json({ success: false, message: 'Error triggering push' });
     }
 };
 

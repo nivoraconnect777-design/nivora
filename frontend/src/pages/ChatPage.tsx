@@ -201,6 +201,22 @@ export default function ChatPage() {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
+
+        // Trigger Push Notification
+        try {
+            const otherUser = getOtherMember(activeChannel);
+            if (otherUser) {
+                await api.post('/api/notifications/trigger-push', {
+                    targetUserId: otherUser.id,
+                    title: user?.username || 'New Message',
+                    body: 'Sent an image',
+                    url: `/chat`, // Open chat page
+                    icon: user?.profilePicUrl
+                });
+            }
+        } catch (error) {
+            console.error('Failed to trigger push for image:', error);
+        }
     };
 
     const handleSendMessage = async (e: React.FormEvent) => {
@@ -213,6 +229,23 @@ export default function ChatPage() {
             });
             setMessageText('');
             setShowEmojiPicker(false);
+
+            // Trigger Push Notification
+            try {
+                const otherUser = getOtherMember(activeChannel);
+                if (otherUser) {
+                    await api.post('/api/notifications/trigger-push', {
+                        targetUserId: otherUser.id,
+                        title: user?.username || 'New Message',
+                        body: messageText,
+                        url: `/chat`,
+                        icon: user?.profilePicUrl
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to trigger push for message:', error);
+            }
+
         } catch (error) {
             console.error('Failed to send message', error);
         }

@@ -1,11 +1,10 @@
-
 self.addEventListener('push', function(event) {
   if (event.data) {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/icon-192x192.png', // Fallback icon
-      badge: '/badge-72x72.png',
+      icon: data.icon || '/icon-192x192.png',
+      badge: data.badge || '/badge-72x72.png',
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
@@ -13,7 +12,8 @@ self.addEventListener('push', function(event) {
         url: data.url || '/'
       },
       actions: [
-        { action: 'explore', title: 'View' }
+        { action: 'reply', title: 'Reply' },
+        { action: 'view', title: 'View' }
       ]
     };
     event.waitUntil(
@@ -25,7 +25,10 @@ self.addEventListener('push', function(event) {
 self.addEventListener('notificationclick', function(event) {
   console.log('Notification click received.');
   event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data.url)
-  );
+
+  if (event.action === 'reply' || event.action === 'view' || !event.action) {
+     event.waitUntil(
+        clients.openWindow(event.notification.data.url)
+     );
+  }
 });

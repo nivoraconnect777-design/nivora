@@ -561,6 +561,8 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
                     title: 'New Like',
                     body: `${req.user?.username} liked your post`,
                     url: `/post/${id}`,
+                    icon: req.user?.profilePicUrl,
+                    badge: '/logo-192.png'
                 });
             }
 
@@ -648,6 +650,8 @@ export const addComment = async (req: AuthRequest, res: Response) => {
                 title: 'New Comment',
                 body: `${req.user?.username} commented on your post: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}`,
                 url: `/post/${id}`,
+                icon: req.user?.profilePicUrl,
+                badge: '/logo-192.png'
             });
         }
 
