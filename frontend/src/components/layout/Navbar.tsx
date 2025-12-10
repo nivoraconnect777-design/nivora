@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut, Menu, PlusSquare, Heart } from 'lucide-react';
+import { Home, Search, Film, MessageCircle, User, Sun, Moon, LogOut, Menu, PlusSquare, Heart, Clock, X } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -208,6 +208,9 @@ function ExpandableSearch({ isDark }: { isDark: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  // Import search history hook
+  const { history, addToHistory, removeFromHistory } = require('../hooks/useSearchHistory').useSearchHistory();
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -228,8 +231,15 @@ function ExpandableSearch({ isDark }: { isDark: boolean }) {
     }
   };
 
+  const handleUserClick = (user: any) => {
+    addToHistory(user);
+    navigate(`/profile/${user.username}`);
+    setIsExpanded(false);
+    setQuery('');
+  };
+
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="relative">
       <motion.form
         onSubmit={handleSubmit}
         initial={false}
@@ -263,6 +273,83 @@ function ExpandableSearch({ isDark }: { isDark: boolean }) {
           onFocus={() => setIsExpanded(true)}
         />
       </motion.form>
+
+      {/* Recent Searches Dropdown */}
+      <AnimatePresence>
+        {isExpanded && !query && history.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`absolute top-full left-0 mt-2 w-80 rounded-xl shadow-2xl overflow-hidden ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+              }`}
+          >
+            <div className="p-3">
+              <h3 className={`text-sm font-semibold mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Recent
+              </h3>
+              <div className="space-y-1">
+                {history.slice(0, 5).map((user: any) => (
+                  <div
+                    key={user.id}
+                    className={`flex items-center gap-3 p-2 rounded-lg transition-all group ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                      }`}
+                  >
+                    <Clock className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+
+                    <div
+                      onClick={() => handleUserClick(user)}
+                      className="flex items-center gap-2 flex-1 cursor-pointer min-w-0"
+                    >
+                      {user.profilePicUrl ? (
+                        <img
+                          src={user.profilePicUrl}
+                          alt={user.username}
+                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-white">
+                            {user.username[0].toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {user.displayName || user.username}
+                          </p>
+                          {user.isVerified && (
+                            <svg className="w-3 h-3 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className={`text-xs truncate ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          @{user.username}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFromHistory(user.id);
+                      }}
+                      className={`p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ${isDark ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-600'
+                        }`}
+                      title="Remove"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
