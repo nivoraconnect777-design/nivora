@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import StoryTray from '../stories/StoryTray';
 import MobileMenu from './MobileMenu';
 import { useState, useRef, useEffect } from 'react';
-import { useSearchHistory } from '../hooks/useSearchHistory';
+import { useSearchHistory } from '../../hooks/useSearchHistory';
 
 export default function Navbar() {
   const location = useLocation();
