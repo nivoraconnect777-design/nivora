@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +16,7 @@ interface CommentItemProps {
 
 export default function CommentItem({ comment, postId, onReply, depth = 0 }: CommentItemProps) {
     const { user } = useAuthStore();
+    const navigate = useNavigate();
     const [isLiked, setIsLiked] = useState(comment.isLiked);
     const [likesCount, setLikesCount] = useState(comment.likesCount);
     const [showReplies, setShowReplies] = useState(false);
@@ -49,7 +51,10 @@ export default function CommentItem({ comment, postId, onReply, depth = 0 }: Com
         <div className={`flex gap-3 ${depth > 0 ? 'mt-3' : 'mt-4'}`}>
             {/* Avatar */}
             <div className="flex-shrink-0">
-                <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80">
+                <div
+                    className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80"
+                    onClick={() => navigate(`/profile/${comment.user.username}`)}
+                >
                     {comment.user.profilePicUrl ? (
                         <img src={comment.user.profilePicUrl} alt={comment.user.username} className="w-full h-full object-cover" />
                     ) : (
@@ -63,7 +68,10 @@ export default function CommentItem({ comment, postId, onReply, depth = 0 }: Com
             {/* Content */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
-                    <span className="font-semibold text-sm text-gray-900 dark:text-white cursor-pointer hover:underline">
+                    <span
+                        className="font-semibold text-sm text-gray-900 dark:text-white cursor-pointer hover:underline"
+                        onClick={() => navigate(`/profile/${comment.user.username}`)}
+                    >
                         {comment.user.username}
                     </span>
                     <span className="text-sm text-gray-700 dark:text-gray-300 break-words">

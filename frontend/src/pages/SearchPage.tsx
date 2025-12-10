@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Loader2, UserPlus } from 'lucide-react';
+import { Search, Loader2, UserPlus, X, Clock } from 'lucide-react';
 import { useThemeStore } from '../stores/themeStore';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../lib/api';
 import FollowButton from '../components/social/FollowButton';
+import { useSearchHistory } from '../hooks/useSearchHistory';
 
 interface User {
   id: string;
@@ -30,6 +31,7 @@ export default function SearchPage() {
 
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
+  const { history, addToHistory, removeFromHistory } = useSearchHistory();
 
   // Update query when URL changes
   useEffect(() => {
@@ -136,16 +138,91 @@ export default function SearchPage() {
         )}
 
         {!debouncedQuery && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
-            <Search className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
-            <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Start typing to search for users
-            </p>
-          </motion.div>
+          <>
+            {history.length > 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="space-y-3"
+              >
+                <h3 className={`text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Recent
+                </h3>
+                {history.map((user, index) => (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all group ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
+                      }`}
+                  >
+                    <Clock className={`w-4 h-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+
+                    <div
+                      onClick={() => {
+                        navigate(`/profile/${user.username}`);
+                      }}
+                      className="flex items-center gap-3 flex-1 cursor-pointer"
+                    >
+                      {user.profilePicUrl ? (
+                        <img
+                          src={user.profilePicUrl}
+                          alt={user.username}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                          <span className="text-sm font-bold text-white">
+                            {user.username[0].toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {user.displayName || user.username}
+                          </p>
+                          {user.isVerified && (
+                            <svg className="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className={`text-sm truncate ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          @{user.username}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFromHistory(user.id);
+                      }}
+                      className={`p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-600'
+                        }`}
+                      title="Remove from recent searches"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12"
+              >
+                <Search className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Start typing to search for users
+                </p>
+              </motion.div>
+            )}
+          </>
         )}
 
         {users.map((user, index) => (
@@ -155,7 +232,7 @@ export default function SearchPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
           >
-            <UserCard user={user} isDark={isDark} navigate={navigate} />
+            <UserCard user={user} isDark={isDark} navigate={navigate} addToHistory={addToHistory} />
           </motion.div>
         ))}
       </div>
@@ -163,7 +240,23 @@ export default function SearchPage() {
   );
 }
 
-function UserCard({ user, isDark, navigate }: { user: User; isDark: boolean; navigate: any }) {
+function UserCard({ user, isDark, navigate, addToHistory }: {
+  user: User;
+  isDark: boolean;
+  navigate: any;
+  addToHistory: (user: any) => void;
+}) {
+  const handleClick = () => {
+    addToHistory({
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      profilePicUrl: user.profilePicUrl,
+      isVerified: user.isVerified,
+    });
+    navigate(`/profile/${user.username}`);
+  };
+
   return (
     <div
       className={`p-4 rounded-2xl transition-all cursor-pointer ${isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50 shadow-lg'
@@ -172,7 +265,7 @@ function UserCard({ user, isDark, navigate }: { user: User; isDark: boolean; nav
       <div className="flex items-center gap-4">
         {/* Profile Picture */}
         <div
-          onClick={() => navigate(`/profile/${user.username}`)}
+          onClick={handleClick}
           className="flex-shrink-0 cursor-pointer"
         >
           {user.profilePicUrl ? (
@@ -192,7 +285,7 @@ function UserCard({ user, isDark, navigate }: { user: User; isDark: boolean; nav
 
         {/* User Info */}
         <div
-          onClick={() => navigate(`/profile/${user.username}`)}
+          onClick={handleClick}
           className="flex-1 min-w-0 cursor-pointer"
         >
           <div className="flex items-center gap-2">

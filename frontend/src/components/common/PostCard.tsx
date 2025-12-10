@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, MoreHorizontal, Send, Bookmark, Edit, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Post } from '../../types/post';
@@ -18,6 +19,7 @@ interface PostCardProps {
 
 export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
     const { user } = useAuthStore();
+    const navigate = useNavigate();
     const isOwner = user?.id === post.userId;
     const [showHeart, setShowHeart] = useState(false);
     const [isSaved, setIsSaved] = useState(post.isSaved || false);
@@ -108,7 +110,10 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+                    <div
+                        className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => navigate(`/profile/${post.user.username}`)}
+                    >
                         {post.user.profilePicUrl ? (
                             <img
                                 src={post.user.profilePicUrl}
@@ -122,7 +127,10 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
                         )}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white cursor-pointer hover:underline">
+                        <h3
+                            className="font-semibold text-gray-900 dark:text-white cursor-pointer hover:underline"
+                            onClick={() => navigate(`/profile/${post.user.username}`)}
+                        >
                             {post.user.username}
                         </h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">

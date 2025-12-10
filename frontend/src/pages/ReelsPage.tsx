@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -87,6 +88,7 @@ export default function ReelsPage() {
 }
 
 function ReelItem({ reel, muted, toggleMute, onEnd }: { reel: Reel; muted: boolean; toggleMute: () => void; onEnd: () => void }) {
+    const navigate = useNavigate();
     const videoRef = useRef<HTMLVideoElement>(null);
     const { ref, inView } = useInView({
         threshold: 0.6,
@@ -125,9 +127,15 @@ function ReelItem({ reel, muted, toggleMute, onEnd }: { reel: Reel; muted: boole
                                 <img
                                     src={reel.user.profilePicUrl || `https://ui-avatars.com/api/?name=${reel.user.username}`}
                                     alt={reel.user.username}
-                                    className="w-10 h-10 rounded-full border-2 border-white"
+                                    className="w-10 h-10 rounded-full border-2 border-white cursor-pointer hover:opacity-80"
+                                    onClick={() => navigate(`/profile/${reel.user.username}`)}
                                 />
-                                <span className="text-white font-bold drop-shadow-md">{reel.user.username}</span>
+                                <span
+                                    className="text-white font-bold drop-shadow-md cursor-pointer hover:underline"
+                                    onClick={() => navigate(`/profile/${reel.user.username}`)}
+                                >
+                                    {reel.user.username}
+                                </span>
                                 <button className="px-3 py-1 bg-transparent border border-white/50 text-white text-xs rounded-full hover:bg-white/20 transition-colors">
                                     Follow
                                 </button>

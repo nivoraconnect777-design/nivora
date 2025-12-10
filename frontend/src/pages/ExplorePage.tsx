@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -27,6 +28,7 @@ interface Post {
 
 export default function ExplorePage() {
     const { isDark } = useThemeStore();
+    const navigate = useNavigate();
     const { ref, inView } = useInView();
 
     const {
@@ -134,9 +136,19 @@ export default function ExplorePage() {
                                 <img
                                     src={post.user.profilePicUrl || `https://ui-avatars.com/api/?name=${post.user.username}&background=random`}
                                     alt={post.user.username}
-                                    className="w-8 h-8 rounded-full object-cover"
+                                    className="w-8 h-8 rounded-full object-cover cursor-pointer hover:opacity-80"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/profile/${post.user.username}`);
+                                    }}
                                 />
-                                <span className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                <span
+                                    className={`text-sm font-medium truncate cursor-pointer hover:underline ${isDark ? 'text-white' : 'text-gray-900'}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/profile/${post.user.username}`);
+                                    }}
+                                >
                                     {post.user.username}
                                 </span>
                             </div>
