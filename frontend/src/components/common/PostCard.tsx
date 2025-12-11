@@ -10,6 +10,7 @@ import InlineComments from '../post/InlineComments';
 import api from '../../lib/api';
 import EditPostModal from '../post/EditPostModal';
 import DeletePostDialog from '../post/DeletePostDialog';
+import SharePostModal from '../post/SharePostModal';
 
 interface PostCardProps {
     post: Post;
@@ -30,6 +31,7 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
 
     // Local state for caption to update immediately after edit
     const [currentCaption, setCurrentCaption] = useState(post.caption);
@@ -71,23 +73,8 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
         }
     };
 
-    const handleShare = async () => {
-        const shareData = {
-            title: `Post by ${post.user.username}`,
-            text: post.caption || 'Check out this post on Nivora!',
-            url: window.location.href,
-        };
-
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.error('Error sharing:', err);
-            }
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            toast.success('Link copied to clipboard!');
-        }
+    const handleShare = () => {
+        setShowShareModal(true);
     };
 
     const toggleSave = async () => {
@@ -314,6 +301,14 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
                 onClose={() => setShowDeleteDialog(false)}
                 onConfirm={handleDelete}
                 isLoading={isDeleting}
+            />
+
+            <SharePostModal
+                isOpen={showShareModal}
+                onClose={() => setShowShareModal(false)}
+                postId={post.id}
+                postUrl={`${window.location.origin}/post/${post.id}`}
+                postCaption={post.caption ?? undefined}
             />
         </div>
     );
