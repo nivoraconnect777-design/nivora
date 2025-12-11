@@ -140,6 +140,7 @@ export default function ProfilePage() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/settings')}
                     className={`p-2 rounded-xl transition-colors ${isDark
                       ? 'bg-gray-700 text-white hover:bg-gray-600'
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'

@@ -8,6 +8,7 @@ import { useNotificationStore } from '../../stores/notificationStore';
 import toast from 'react-hot-toast';
 import StoryTray from '../stories/StoryTray';
 import MobileMenu from './MobileMenu';
+import ConfirmDialog from '../common/ConfirmDialog';
 import { useState, useRef, useEffect } from 'react';
 import { useSearchHistory } from '../../hooks/useSearchHistory';
 
@@ -19,6 +20,7 @@ export default function Navbar() {
   const { unreadCount, lastNotification, notificationCounts, fetchUnreadCount, clearLastNotification } = useNotificationStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -122,7 +124,7 @@ export default function Navbar() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={handleLogout}
+                  onClick={() => setShowLogoutConfirm(true)}
                   className={`p-2.5 rounded-xl transition-colors ${isDark
                     ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
                     : 'bg-red-50 text-red-600 hover:bg-red-100'
@@ -165,6 +167,18 @@ export default function Navbar() {
 
       {/* Mobile Menu Drawer */}
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Logout Confirmation"
+        message="Are you sure you want to logout from this account? You'll need to sign in again to access your account."
+        confirmText="Logout"
+        cancelText="Cancel"
+        variant="danger"
+      />
 
       {/* Spacer for fixed navbar */}
       {isAuthenticated && isHomePage && <div className="h-32 hidden md:block" />}

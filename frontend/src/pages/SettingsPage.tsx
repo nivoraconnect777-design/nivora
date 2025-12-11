@@ -17,6 +17,7 @@ import {
     EyeOff
 } from 'lucide-react';
 import EditProfileModal from '../components/profile/EditProfileModal';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 
@@ -35,6 +36,9 @@ export default function SettingsPage() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // Logout Confirmation
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     // Notification Toggles
     const [notifications, setNotifications] = useState({
@@ -343,7 +347,7 @@ export default function SettingsPage() {
                 {/* Danger Zone */}
                 <div className="pt-8 border-t border-gray-200 dark:border-gray-800">
                     <button
-                        onClick={logout}
+                        onClick={() => setShowLogoutConfirm(true)}
                         className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium transition-colors"
                     >
                         <LogOut className="w-5 h-5" />
@@ -355,6 +359,17 @@ export default function SettingsPage() {
             <EditProfileModal
                 isOpen={isEditProfileOpen}
                 onClose={() => setIsEditProfileOpen(false)}
+            />
+
+            <ConfirmDialog
+                isOpen={showLogoutConfirm}
+                onClose={() => setShowLogoutConfirm(false)}
+                onConfirm={logout}
+                title="Logout Confirmation"
+                message="Are you sure you want to logout from this account? You'll need to sign in again to access your account."
+                confirmText="Logout"
+                cancelText="Cancel"
+                variant="danger"
             />
         </div>
     );
