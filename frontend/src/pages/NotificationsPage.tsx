@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Loader2, MessageCircle, Send } from 'lucide-react';
+import { Heart, Loader2, MessageCircle, Send, ChevronDown } from 'lucide-react';
 import { useThemeStore } from '../stores/themeStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../lib/api';
@@ -234,9 +234,21 @@ const NotificationsPage = () => {
                                                 {getNotificationText(notification)}
                                             </span>
                                         </p>
-                                        <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                            {getTimeAgo(notification.createdAt)}
-                                        </p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                                {getTimeAgo(notification.createdAt)}
+                                            </p>
+                                            {notification.type === 'comment' && notification.commentId && (
+                                                <div className="flex items-center gap-1">
+                                                    <span className={`text-xs ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                        {isExpanded ? 'Tap to collapse' : 'Tap to like/reply'}
+                                                    </span>
+                                                    <ChevronDown
+                                                        className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''} ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Post Thumbnail (if applicable) */}
