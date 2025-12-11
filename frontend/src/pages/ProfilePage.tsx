@@ -7,6 +7,8 @@ import { Settings, Grid, Film, Bookmark, Camera, Loader2, MessageCircle } from '
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import EditProfileModal from '../components/profile/EditProfileModal';
+import FollowersModal from '../components/profile/FollowersModal';
+import FollowingModal from '../components/profile/FollowingModal';
 import FollowButton from '../components/social/FollowButton';
 import toast from 'react-hot-toast';
 
@@ -17,6 +19,8 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('posts');
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   // If no username in URL, show current user's profile
   const profileUsername = username || currentUser?.username;
@@ -125,7 +129,7 @@ export default function ProfilePage() {
               </h1>
 
               {isOwnProfile ? (
-                <>
+                <div className="flex flex-row gap-2">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -148,7 +152,7 @@ export default function ProfilePage() {
                   >
                     <Settings className="w-5 h-5" />
                   </motion.button>
-                </>
+                </div>
               ) : (
                 <div className="flex gap-2">
                   <FollowButton userId={profileUser.id} size="md" />
@@ -178,7 +182,10 @@ export default function ProfilePage() {
                   Posts
                 </div>
               </div>
-              <div className="text-center cursor-pointer hover:opacity-80">
+              <div
+                className="text-center cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => setShowFollowersModal(true)}
+              >
                 <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {profileUser?.stats?.followers || 0}
                 </div>
@@ -186,7 +193,10 @@ export default function ProfilePage() {
                   Followers
                 </div>
               </div>
-              <div className="text-center cursor-pointer hover:opacity-80">
+              <div
+                className="text-center cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => setShowFollowingModal(true)}
+              >
                 <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {profileUser?.stats?.following || 0}
                 </div>
@@ -356,6 +366,26 @@ export default function ProfilePage() {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
       />
+
+      {/* Followers Modal */}
+      {profileUser && (
+        <FollowersModal
+          isOpen={showFollowersModal}
+          onClose={() => setShowFollowersModal(false)}
+          userId={profileUser.id}
+          username={profileUser.username}
+        />
+      )}
+
+      {/* Following Modal */}
+      {profileUser && (
+        <FollowingModal
+          isOpen={showFollowingModal}
+          onClose={() => setShowFollowingModal(false)}
+          userId={profileUser.id}
+          username={profileUser.username}
+        />
+      )}
     </div>
   );
 }

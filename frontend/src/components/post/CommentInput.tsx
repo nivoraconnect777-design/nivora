@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, X } from 'lucide-react';
+import { Send, Loader2, X, Smile } from 'lucide-react';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import api from '../../lib/api';
 
 interface CommentInputProps {
@@ -12,9 +14,12 @@ interface CommentInputProps {
 
 export default function CommentInput({ postId, onCommentAdded, replyTo, onCancelReply }: CommentInputProps) {
     const { user } = useAuthStore();
+    const { isDark } = useThemeStore();
     const [text, setText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (replyTo && inputRef.current) {
@@ -22,6 +27,24 @@ export default function CommentInput({ postId, onCommentAdded, replyTo, onCancel
             setText(`@${replyTo.username} `);
         }
     }, [replyTo]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const onEmojiClick = (emojiData: EmojiClickData) => {
+        setText(prev => prev + emojiData.emoji);
+        inputRef.current?.focus();
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,6 +61,7 @@ export default function CommentInput({ postId, onCommentAdded, replyTo, onCancel
             });
 
             setText('');
+            setShowEmojiPicker(false);
             onCommentAdded();
             if (replyTo && onCancelReply) onCancelReply();
         } catch (error) {
@@ -82,8 +106,33 @@ export default function CommentInput({ postId, onCommentAdded, replyTo, onCancel
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder={replyTo ? `Reply to ${replyTo.username}...` : "Add a comment..."}
-                    className={`w-full bg-white dark:bg-gray-800 border-none rounded-full pl-4 pr-12 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white transition-all shadow-sm ${replyTo ? 'rounded-tl-none' : ''}`}
+                    className={`w-full bg-white dark:bg-gray-800 border-none rounded-full pl-4 pr-20 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white transition-all shadow-sm ${replyTo ? 'rounded-tl-none' : ''}`}
                 />
+
+                {/* Emoji Picker Button */}
+                <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className={`absolute right-12 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${showEmojiPicker
+                            ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                            : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                        }`}
+                >
+                    <Smile className="w-4 h-4" />
+                </button>
+
+                {/* Emoji Picker */}
+                {showEmojiPicker && (
+                    <div ref={emojiPickerRef} className="absolute right-0 bottom-full mb-2 z-50 shadow-2xl rounded-xl overflow-hidden">
+                        <EmojiPicker
+                            onEmojiClick={onEmojiClick}
+                            theme={isDark ? Theme.DARK : Theme.LIGHT}
+                            width={300}
+                            height={400}
+                        />
+                    </div>
+                )}
+
                 <button
                     type="submit"
                     disabled={!text.trim() || isSubmitting}

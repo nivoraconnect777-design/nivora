@@ -48,14 +48,14 @@ export default function SharePostModal({
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            // Fetch both followers and following
+            // Fetch both followers and following using user ID
             const [followersRes, followingRes] = await Promise.all([
-                api.get(`/api/follow/${currentUser?.username}/followers`),
-                api.get(`/api/follow/${currentUser?.username}/following`)
+                api.get(`/api/follow/${currentUser?.id}/followers`),
+                api.get(`/api/follow/${currentUser?.id}/following`)
             ]);
 
-            const followers = followersRes.data.data || [];
-            const following = followingRes.data.data || [];
+            const followers = followersRes.data.data?.followers || [];
+            const following = followingRes.data.data?.following || [];
 
             // Combine and deduplicate
             const allUsers = [...followers, ...following];

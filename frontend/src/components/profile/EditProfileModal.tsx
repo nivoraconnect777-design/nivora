@@ -329,10 +329,10 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
                       className={`w-full pl-10 pr-10 py-3 border rounded-xl focus:ring-2 transition-all ${usernameError
-                          ? 'border-red-500 focus:ring-red-500'
-                          : usernameAvailable
-                            ? 'border-green-500 focus:ring-green-500'
-                            : 'focus:ring-blue-500'
+                        ? 'border-red-500 focus:ring-red-500'
+                        : usernameAvailable
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'focus:ring-blue-500'
                         } ${isDark
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
@@ -371,8 +371,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                       value={formData.displayName}
                       onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                       className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${isDark
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                         }`}
                       placeholder="Your display name"
                     />
@@ -380,14 +380,14 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                       type="button"
                       onClick={() => setActiveEmojiField(activeEmojiField === 'displayName' ? null : 'displayName')}
                       className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${activeEmojiField === 'displayName'
-                          ? (isDark ? 'bg-gray-600 text-yellow-400' : 'bg-gray-200 text-yellow-500')
-                          : 'text-gray-400 hover:text-gray-500'
+                        ? (isDark ? 'bg-gray-600 text-yellow-400' : 'bg-gray-200 text-yellow-500')
+                        : 'text-gray-400 hover:text-gray-500'
                         }`}
                     >
                       <Smile className="w-5 h-5" />
                     </button>
                     {activeEmojiField === 'displayName' && (
-                      <div ref={emojiPickerRef} className="absolute right-0 top-full mt-2 z-50 shadow-2xl rounded-xl overflow-hidden">
+                      <div ref={emojiPickerRef} className="absolute right-0 bottom-full mb-2 z-50 shadow-2xl rounded-xl overflow-hidden">
                         <EmojiPicker
                           onEmojiClick={onEmojiClick}
                           theme={isDark ? Theme.DARK : Theme.LIGHT}
@@ -413,8 +413,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                       maxLength={150}
                       rows={3}
                       className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none ${isDark
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                         }`}
                       placeholder="Tell us about yourself..."
                     />
@@ -422,14 +422,14 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                       type="button"
                       onClick={() => setActiveEmojiField(activeEmojiField === 'bio' ? null : 'bio')}
                       className={`absolute right-3 top-3 p-1.5 rounded-full transition-colors ${activeEmojiField === 'bio'
-                          ? (isDark ? 'bg-gray-600 text-yellow-400' : 'bg-gray-200 text-yellow-500')
-                          : 'text-gray-400 hover:text-gray-500'
+                        ? (isDark ? 'bg-gray-600 text-yellow-400' : 'bg-gray-200 text-yellow-500')
+                        : 'text-gray-400 hover:text-gray-500'
                         }`}
                     >
                       <Smile className="w-5 h-5" />
                     </button>
                     {activeEmojiField === 'bio' && (
-                      <div ref={emojiPickerRef} className="absolute right-0 top-full mt-2 z-50 shadow-2xl rounded-xl overflow-hidden">
+                      <div ref={emojiPickerRef} className="absolute right-0 bottom-full mb-2 z-50 shadow-2xl rounded-xl overflow-hidden">
                         <EmojiPicker
                           onEmojiClick={onEmojiClick}
                           theme={isDark ? Theme.DARK : Theme.LIGHT}
@@ -452,8 +452,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                     type="button"
                     onClick={onClose}
                     className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${isDark
-                        ? 'bg-gray-700 text-white hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                       }`}
                   >
                     Cancel
