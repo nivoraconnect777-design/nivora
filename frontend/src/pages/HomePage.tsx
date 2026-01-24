@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInView } from 'react-intersection-observer';
 import { useThemeStore } from '../stores/themeStore';
 import { useAuthStore } from '../stores/authStore';
 import { useUIStore } from '../stores/uiStore';
@@ -15,8 +17,11 @@ export default function HomePage() {
   const { isAuthenticated } = useAuthStore();
   const { feedRefreshTrigger } = useUIStore();
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { ref, inView } = useInView();
+  const queryClient = useQueryClient();
+
+  // Optimistic update state (optional, can also use queryClient.setQueryData)
+  // We'll rely on React Query cache mostly, but for immediate feedback might need local state if complex
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -24,67 +29,130 @@ export default function HomePage() {
     }
   }, [isAuthenticated, navigate]);
 
-  const fetchPosts = async () => {
-    try {
-      // Only set loading on initial fetch, not on refresh
-      if (posts.length === 0) setIsLoading(true);
-      const response = await api.get('/api/posts');
-      if (response.data.success) {
-        setPosts(response.data.posts);
-      }
-    } catch (error) {
-      console.error('Failed to fetch posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['feedPosts'],
+    queryFn: async ({ pageParam = 1 }) => {
+      // Limit is now defaulted to 5 on backend, but we can be explicit
+      const response = await api.get(`/api/posts?page=${pageParam}&limit=5`);
+      return {
+        posts: response.data.posts as Post[],
+        // We need to know if there are more. 
+        // Backend doesn't return total count in this simple endpoint usually, 
+        // so we guess based on if we got full limit.
+        // Or backend needs to return hasMore. 
+        // Assuming if (posts.length < 5) then no more.
+        hasMore: response.data.posts.length === 5
+      };
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.hasMore ? allPages.length + 1 : undefined;
+    },
+    initialPageParam: 1,
+  });
 
   useEffect(() => {
-    fetchPosts();
-  }, [feedRefreshTrigger]); // Refetch when trigger changes
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, fetchNextPage, hasNextPage]);
 
-  const handleLike = async (postId: string) => {
-    // Optimistic update
-    const previousPosts = [...posts];
-    const postIndex = posts.findIndex(p => p.id === postId);
-    if (postIndex === -1) return;
+  // Handle refresh trigger
+  useEffect(() => {
+    if (feedRefreshTrigger > 0) {
+      refetch();
+    }
+  }, [feedRefreshTrigger, refetch]);
 
-    const currentPost = posts[postIndex];
-    const newIsLiked = !currentPost.isLiked;
 
-    // Update UI immediately
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
+  // Mutations for interactions
+  const likeMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      return api.post(`/api/posts/${postId}/like`);
+    },
+    onMutate: async (postId) => {
+      // Cancel refetches
+      await queryClient.cancelQueries({ queryKey: ['feedPosts'] });
+
+      // Snapshot
+      const previousData = queryClient.getQueryData(['feedPosts']);
+
+      // Optimistic Update
+      queryClient.setQueryData(['feedPosts'], (oldData: any) => {
+        if (!oldData) return oldData;
+
         return {
-          ...post,
-          isLiked: newIsLiked,
-          likesCount: newIsLiked ? post.likesCount + 1 : post.likesCount - 1
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            posts: page.posts.map((post: Post) => {
+              if (post.id === postId) {
+                return {
+                  ...post,
+                  isLiked: !post.isLiked,
+                  likesCount: post.isLiked ? post.likesCount - 1 : post.likesCount + 1
+                };
+              }
+              return post;
+            })
+          }))
         };
-      }
-      return post;
-    }));
+      });
 
-    try {
-      const response = await api.post(`/api/posts/${postId}/like`);
-      if (!response.data.success) {
-        // Rollback on failure
-        setPosts(previousPosts);
+      return { previousData };
+    },
+    onError: (err, newTodo, context) => {
+      // Rollback
+      if (context?.previousData) {
+        queryClient.setQueryData(['feedPosts'], context.previousData);
       }
-    } catch (error) {
-      console.error('Failed to like post:', error);
-      // Rollback on error
-      setPosts(previousPosts);
     }
-  };
+  });
 
-  const handleDelete = async (postId: string) => {
-    try {
+  const deleteMutation = useMutation({
+    mutationFn: async (postId: string) => {
       await api.delete(`/api/posts/${postId}`);
-      setPosts(posts.filter(p => p.id !== postId));
-    } catch (error) {
-      console.error('Failed to delete post:', error);
+      return postId;
+    },
+    onSuccess: (postId) => {
+      // Remove from cache
+      queryClient.setQueryData(['feedPosts'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            posts: page.posts.filter((p: Post) => p.id !== postId)
+          }))
+        };
+      });
     }
+  });
+
+  const handleLike = (postId: string) => {
+    likeMutation.mutate(postId);
   };
+
+  const handleDelete = (postId: string) => {
+    deleteMutation.mutate(postId);
+  };
+
+  if (status === 'pending') {
+    return (
+      <div className="flex justify-center items-center h-screen pt-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  // Flatten posts from pages
+  const allPosts = data?.pages.flatMap(page => page.posts) || [];
 
   return (
     <div className="max-w-full mx-auto px-4 py-20 md:py-8 md:max-w-2xl">
@@ -94,13 +162,9 @@ export default function HomePage() {
       </div>
 
       {/* Posts Feed */}
-      {isLoading ? (
-        <div className="flex justify-center items-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        </div>
-      ) : posts.length > 0 ? (
+      {status === 'success' && allPosts.length > 0 ? (
         <div>
-          {posts.map((post) => (
+          {allPosts.map((post) => (
             <PostCard
               key={post.id}
               post={post}
@@ -108,6 +172,17 @@ export default function HomePage() {
               onDelete={handleDelete}
             />
           ))}
+
+          {/* Loading Connector for Infinite Scroll */}
+          <div ref={ref} className="flex justify-center py-8">
+            {isFetchingNextPage ? (
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+            ) : hasNextPage ? (
+              <span className="text-sm text-gray-400">Loading more...</span>
+            ) : (
+              <span className="text-sm text-gray-500">You're all caught up!</span>
+            )}
+          </div>
         </div>
       ) : (
         <motion.div

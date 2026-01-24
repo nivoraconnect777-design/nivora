@@ -40,7 +40,7 @@ export default function ExplorePage() {
     } = useInfiniteQuery({
         queryKey: ['explorePosts'],
         queryFn: async ({ pageParam = 1 }) => {
-            const response = await api.get(`/api/explore?page=${pageParam}&limit=20`);
+            const response = await api.get(`/api/explore?page=${pageParam}&limit=5`); // Updated limit to 5
             return response.data.data;
         },
         getNextPageParam: (lastPage, allPages) => {

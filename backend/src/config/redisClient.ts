@@ -18,8 +18,8 @@ export const redis = hasRedisCredentials
     : null;
 
 export const CACHE_TTL = {
-    FEED: 60, // 1 minute
+    FEED: 300, // 5 minutes
     POST: 300, // 5 minutes
     USER: 300, // 5 minutes
-    EXPLORE: 60, // 1 minute
+    EXPLORE: 300, // 5 minutes
 };
