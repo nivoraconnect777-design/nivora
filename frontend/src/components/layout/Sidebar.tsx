@@ -87,13 +87,7 @@ export default function Sidebar() {
           active={isActive('/search')}
           isDark={isDark}
         />
-        <SidebarLink
-          to="/reels"
-          icon={Film}
-          label="Reels"
-          active={isActive('/reels')}
-          isDark={isDark}
-        />
+       
         <SidebarLink
           to="/messages"
           icon={MessageCircle}
